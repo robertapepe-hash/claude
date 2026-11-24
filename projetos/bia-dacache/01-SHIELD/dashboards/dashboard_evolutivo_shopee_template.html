@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BC Shopee HE — Evolutivo por Faixa ASP</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+  :root{ --shp:#EE4D2D; --meli:#FFE600; --shpLine:#B93815; --meliLine:#8A6D00; --ink:#2d2d2d; --bg:#f6f6f4; --card:#fff; --border:#e3e3df; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:'Proxima Nova',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; background:var(--bg); color:var(--ink); }
+  header{ background:var(--meli); padding:14px 22px; display:flex; align-items:center; gap:14px; border-bottom:3px solid #111; }
+  header h1{ font-size:18px; margin:0; font-weight:800; letter-spacing:.2px; }
+  header .sub{ font-size:12px; color:#5a5a2e; margin-left:auto; }
+  .wrap{ padding:18px 22px; max-width:1500px; margin:0 auto; }
+  .filters{ display:flex; flex-wrap:wrap; gap:18px; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+  .fgroup{ display:flex; flex-direction:column; gap:6px; }
+  .fgroup > label{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:#888; }
+  .chips{ display:flex; flex-wrap:wrap; gap:6px; max-width:640px; }
+  .chip{ font-size:12px; padding:4px 10px; border:1px solid var(--border); border-radius:999px; cursor:pointer; user-select:none; background:#fafafa; }
+  .chip.on{ background:var(--ink); color:#fff; border-color:var(--ink); }
+  select{ padding:5px 8px; border:1px solid var(--border); border-radius:6px; font-size:13px; }
+  .row{ display:flex; gap:6px; align-items:center; }
+  .card{ background:var(--card); border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+  .kpis{ display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px; }
+  .kpi{ flex:1; min-width:150px; background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
+  .kpi .lab{ font-size:11px; text-transform:uppercase; color:#999; font-weight:700; letter-spacing:.4px; }
+  .kpi .val{ font-size:22px; font-weight:800; margin-top:2px; }
+  .kpi .delta{ font-size:12px; margin-top:2px; }
+  .chartbox{ position:relative; height:420px; }
+  table.evo{ width:100%; border-collapse:collapse; font-size:12px; margin-top:4px; }
+  table.evo th, table.evo td{ border:1px solid var(--border); padding:4px 7px; text-align:right; white-space:nowrap; }
+  table.evo th:first-child, table.evo td:first-child{ text-align:left; position:sticky; left:0; background:var(--card); font-weight:700; }
+  table.evo thead th{ background:#fafafa; font-weight:700; }
+  table.evo tr.ratio td{ background:#fff6f3; font-weight:700; }
+  .tblscroll{ overflow-x:auto; }
+  .pos{ color:#178a3f; } .neg{ color:#c0392b; }
+  .muted{ color:#999; font-size:11px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Combate Shopee · Home Electronics — Evolutivo por Faixa de ASP</h1>
+  <span class="sub">GMV (R$ Mi) · fonte: DM_MARKET_ASP · 2025 → jun/26</span>
+</header>
+<div class="wrap">
+  <div class="filters">
+    <div class="fgroup"><label>D1</label><div class="chips" id="fD1"></div></div>
+    <div class="fgroup"><label>Faixa de ASP</label><div class="chips" id="fFaixa"></div></div>
+    <div class="fgroup"><label>Período</label>
+      <div class="row"><select id="mFrom"></select><span>até</span><select id="mTo"></select></div>
+      <span class="muted" id="periodInfo"></span>
+    </div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card">
+    <div class="chartbox"><canvas id="chart"></canvas></div>
+  </div>
+
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;margin-bottom:8px;">Tabela evolutiva (por mês)</div>
+    <div class="tblscroll"><table class="evo" id="tbl"></table></div>
+    <div class="muted" style="margin-top:8px;">MS = market share sobre o mercado total · Ratio = MS Shopee / MS MELI (= Shopee/MELI) · MoM = vs mês anterior.</div>
+  </div>
+</div>
+
+<script>
+const RAW = __DATA__;
+const COLS = ['d1','faixa','faixa_ord','mes','shp','meli','merc','shp_lm','meli_lm','merc_lm','shp_ly','meli_ly','merc_ly'];
+const DATA = RAW.map(r=>{const o={}; COLS.forEach((c,i)=>{o[c]= (i<2||i===3)? r[i] : Number(r[i]);}); return o;});
+
+const D1S = [...new Set(DATA.map(d=>d.d1))];
+const FAIXAS = [...new Map(DATA.map(d=>[d.faixa, d.faixa_ord])).entries()].sort((a,b)=>a[1]-b[1]).map(e=>e[0]);
+const MESES = [...new Set(DATA.map(d=>d.mes))].sort();
+
+const sel = { d1:new Set(D1S), faixa:new Set(FAIXAS), from:MESES[0], to:MESES[MESES.length-1] };
+
+function fmtMi(v){ return (v==null||isNaN(v))?'–': v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}); }
+function fmtPct(v){ return (v==null||isNaN(v)||!isFinite(v))?'–': v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'; }
+function pctClass(v){ return v>0?'pos':(v<0?'neg':''); }
+
+function buildChips(elId, items, set){
+  const el=document.getElementById(elId); el.innerHTML='';
+  items.forEach(it=>{
+    const c=document.createElement('span'); c.className='chip'+(set.has(it)?' on':''); c.textContent=it;
+    c.onclick=()=>{ if(set.has(it)){ if(set.size>1) set.delete(it);} else set.add(it); buildChips(elId,items,set); render(); };
+    el.appendChild(c);
+  });
+}
+function buildMonthSelectors(){
+  const mf=document.getElementById('mFrom'), mt=document.getElementById('mTo');
+  mf.innerHTML=''; mt.innerHTML='';
+  MESES.forEach(m=>{ mf.add(new Option(m,m)); mt.add(new Option(m,m)); });
+  mf.value=sel.from; mt.value=sel.to;
+  mf.onchange=()=>{ sel.from=mf.value; if(sel.from>sel.to){sel.to=sel.from; mt.value=sel.to;} render(); };
+  mt.onchange=()=>{ sel.to=mt.value; if(sel.to<sel.from){sel.from=sel.to; mf.value=sel.from;} render(); };
+}
+
+function aggregate(){
+  const months = MESES.filter(m=>m>=sel.from && m<=sel.to);
+  const byM = new Map(months.map(m=>[m,{mes:m,shp:0,meli:0,merc:0,shp_lm:0,meli_lm:0,merc_lm:0,shp_ly:0,meli_ly:0,merc_ly:0}]));
+  DATA.forEach(d=>{
+    if(!sel.d1.has(d.d1)||!sel.faixa.has(d.faixa)||!byM.has(d.mes)) return;
+    const o=byM.get(d.mes);
+    o.shp+=d.shp; o.meli+=d.meli; o.merc+=d.merc;
+    o.shp_lm+=d.shp_lm; o.meli_lm+=d.meli_lm; o.merc_lm+=d.merc_lm;
+    o.shp_ly+=d.shp_ly; o.meli_ly+=d.meli_ly; o.merc_ly+=d.merc_ly;
+  });
+  return months.map(m=>{
+    const o=byM.get(m);
+    o.ms_shp = o.merc? o.shp/o.merc*100 : null;
+    o.ms_meli = o.merc? o.meli/o.merc*100 : null;
+    o.ratio = o.meli? o.shp/o.meli*100 : null;
+    o.mom_shp = o.shp_lm? (o.shp/o.shp_lm-1)*100 : null;
+    o.mom_meli = o.meli_lm? (o.meli/o.meli_lm-1)*100 : null;
+    o.yoy_shp = o.shp_ly? (o.shp/o.shp_ly-1)*100 : null;
+    o.yoy_meli = o.meli_ly? (o.meli/o.meli_ly-1)*100 : null;
+    return o;
+  });
+}
+
+let chart;
+function render(){
+  const agg = aggregate();
+  const labels = agg.map(o=>o.mes);
+  document.getElementById('periodInfo').textContent = agg.length+' meses selecionados';
+
+  // KPIs (último mês do range)
+  const last = agg[agg.length-1] || {};
+  const kpis=[
+    ['Shopee — '+(last.mes||''), fmtMi(last.shp)+' Mi', 'YoY '+fmtPct(last.yoy_shp), pctClass(last.yoy_shp)],
+    ['MELI — '+(last.mes||''), fmtMi(last.meli)+' Mi', 'YoY '+fmtPct(last.yoy_meli), pctClass(last.yoy_meli)],
+    ['Ratio Shopee/MELI', fmtPct(last.ratio), 'quanto do nosso tamanho', ''],
+    ['MS Shopee', fmtPct(last.ms_shp), 'vs MS MELI '+fmtPct(last.ms_meli), '']
+  ];
+  document.getElementById('kpis').innerHTML = kpis.map(k=>`<div class="kpi"><div class="lab">${k[0]}</div><div class="val">${k[1]}</div><div class="delta ${k[3]}">${k[2]}</div></div>`).join('');
+
+  const ratios = agg.map(o=>o.ratio);
+  const ds=[
+    {type:'bar', label:'GMV Shopee', data:agg.map(o=>o.shp), backgroundColor:'#EE4D2D', yAxisID:'y', order:2,
+      datalabels:{ display:true, anchor:'center', align:'center', color:'#fff', font:{weight:'bold',size:10}, rotation:-90,
+        formatter:(v,ctx)=>{ const r=ratios[ctx.dataIndex]; return r==null?'':Math.round(r)+'%'; } }},
+    {type:'bar', label:'GMV MELI', data:agg.map(o=>o.meli), backgroundColor:'#FFE600', borderColor:'#c9b800', borderWidth:1, yAxisID:'y', order:2, datalabels:{display:false}},
+    {type:'line', label:'YoY Shopee', data:agg.map(o=>o.yoy_shp), borderColor:'#B93815', backgroundColor:'#B93815', yAxisID:'y1', tension:.25, order:1, datalabels:{display:false}},
+    {type:'line', label:'YoY MELI', data:agg.map(o=>o.yoy_meli), borderColor:'#8A6D00', backgroundColor:'#8A6D00', borderDash:[5,4], yAxisID:'y1', tension:.25, order:1, datalabels:{display:false}}
+  ];
+  const cfg={ type:'bar', data:{labels,datasets:ds},
+    options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{position:'top'},
+        tooltip:{ callbacks:{ label:(c)=>{ const o=agg[c.dataIndex];
+          if(c.dataset.label==='GMV Shopee') return ' Shopee: R$ '+fmtMi(o.shp)+' Mi  (ratio '+fmtPct(o.ratio)+')';
+          if(c.dataset.label==='GMV MELI') return ' MELI: R$ '+fmtMi(o.meli)+' Mi';
+          if(c.dataset.label==='YoY Shopee') return ' YoY Shopee: '+fmtPct(o.yoy_shp);
+          return ' YoY MELI: '+fmtPct(o.yoy_meli); } } } },
+      scales:{ y:{ title:{display:true,text:'GMV (R$ Mi)'}, beginAtZero:true },
+        y1:{ position:'right', title:{display:true,text:'YoY (%)'}, grid:{drawOnChartArea:false}, ticks:{callback:v=>v+'%'} } } },
+    plugins:[ChartDataLabels] };
+  if(chart) chart.destroy();
+  chart=new Chart(document.getElementById('chart'), cfg);
+
+  // Tabela transposta
+  const rows=[
+    ['MS Shopee', agg.map(o=>fmtPct(o.ms_shp)), null],
+    ['MS MELI', agg.map(o=>fmtPct(o.ms_meli)), null],
+    ['Ratio (SHP/MELI)', agg.map(o=>fmtPct(o.ratio)), 'ratio'],
+    ['MoM Shopee', agg.map((o,i)=>`<span class="${pctClass(o.mom_shp)}">${fmtPct(o.mom_shp)}</span>`), null],
+    ['MoM MELI', agg.map((o,i)=>`<span class="${pctClass(o.mom_meli)}">${fmtPct(o.mom_meli)}</span>`), null]
+  ];
+  let html='<thead><tr><th>Métrica</th>'+labels.map(m=>`<th>${m}</th>`).join('')+'</tr></thead><tbody>';
+  rows.forEach(r=>{ html+=`<tr class="${r[2]||''}"><td>${r[0]}</td>`+r[1].map(v=>`<td>${v}</td>`).join('')+'</tr>'; });
+  html+='</tbody>';
+  document.getElementById('tbl').innerHTML=html;
+}
+
+buildChips('fD1', D1S, sel.d1);
+buildChips('fFaixa', FAIXAS, sel.faixa);
+buildMonthSelectors();
+render();
+</script>
+</body>
+</html>

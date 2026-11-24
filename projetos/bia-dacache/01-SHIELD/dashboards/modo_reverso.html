@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BC Shopee HE — Modo Reverso</title>
+<style>
+ :root{--shp:#EE4D2D;--meli:#FFE600;--bau:#4a90d9;--bc:#1f9d55;--ink:#2d2d2d;--bg:#f6f6f4;--card:#fff;--bd:#e3e3df}
+ *{box-sizing:border-box}
+ body{margin:0;font-family:'Proxima Nova',system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+ header{background:var(--meli);padding:13px 20px;border-bottom:3px solid #111}
+ header h1{font-size:17px;margin:0;font-weight:800}
+ header .s{font-size:11px;color:#5a5a2e;margin-top:3px;line-height:1.5}
+ .wrap{padding:16px 20px;max-width:1380px;margin:0 auto}
+ .card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;margin-bottom:13px}
+ .card h3{font-size:13px;margin:0 0 5px 0}
+ .hint{font-size:11.5px;color:#777;line-height:1.55;margin-bottom:9px}
+ .chips{display:flex;gap:6px;flex-wrap:wrap}
+ .chip{font-size:12px;padding:5px 12px;border:1px solid var(--bd);border-radius:999px;cursor:pointer;background:#fafafa;user-select:none}
+ .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+ .sl{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+ input[type=range]{width:320px}
+ .big{font-size:21px;font-weight:800;min-width:130px}
+ .kpis{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:13px}
+ .kpi{flex:1;min-width:158px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:11px 13px}
+ .kpi.win{background:#eaf7ef;border:2px solid var(--bc)}
+ .kpi .l{font-size:10.5px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.3px;line-height:1.35}
+ .kpi .v{font-size:23px;font-weight:800;margin-top:3px}
+ .kpi .p{font-size:11px;color:#777;margin-top:2px;line-height:1.4}
+ table{width:100%;border-collapse:collapse;font-size:12px}
+ th,td{border:1px solid var(--bd);padding:5px 8px;text-align:right;white-space:nowrap}
+ th:first-child,td:first-child{text-align:left;font-weight:700}
+ thead th{background:#fafafa}
+ tfoot td{background:#fafafa;font-weight:800}
+ tr.t1 td:first-child{padding-left:22px;font-weight:400}
+ .bau{color:#2b6cb0;font-weight:700} .bcv{color:#157347;font-weight:700} .gapv{color:#c0392b;font-weight:700}
+ .g{font-size:11px;color:#666;line-height:1.75}
+ .warn{background:#fff6e5;border:2px solid #d98a00;color:#8a5800;padding:10px 14px;border-radius:9px;font-size:12.5px;margin-bottom:13px;line-height:1.55}
+ .bars{display:flex;height:26px;border-radius:5px;overflow:hidden;border:1px solid var(--bd);margin:7px 0}
+ .bars div{display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden}
+</style>
+</head>
+<body>
+<header><h1>Modo Reverso — do que conseguimos entregar para o ratio que isso compra</h1>
+<div class="s">Lógica invertida: em vez de escolher um ratio-alvo e calcular o incremental (que produz números indefensáveis), partimos da <b>capacidade real</b> — BAU + sellers — e vemos <b>quanto da deterioração isso freia</b>. Valores em <b>R$ Milhões</b>, período <b>jul-dez/2026</b>.</div></header>
+<div class="wrap">
+
+ <div class="card"><h3>1. Categoria</h3><div class="chips" id="cE"></div></div>
+
+ <div class="card"><h3>2. Ritmo da Shopee daqui pra frente</h3>
+  <div class="hint" id="hShp"></div><div class="chips" id="cP"></div></div>
+
+ <div class="card"><h3>3. Quanto o BAU consegue entregar acima da tendência</h3>
+  <div class="hint" id="hBau"></div><div class="chips" id="cB"></div>
+  <div class="hint" id="hBau2" style="margin-top:8px;margin-bottom:0"></div></div>
+
+ <div class="card"><h3>4. Quanto os sellers do BC conseguem crescer</h3>
+  <div class="hint" id="hBc"></div>
+  <div class="sl"><input type="range" id="sBc" min="0" max="150" step="5" value="40"><div class="big" id="vBc"></div></div>
+  <div class="hint" id="hBc2" style="margin-top:7px;margin-bottom:0"></div></div>
+
+ <div id="alerta"></div>
+ <div class="kpis" id="kp"></div>
+
+ <div class="card"><h3>Cascata — nível D1 (macro)</h3>
+  <div class="bars" id="barras"></div>
+  <table id="tCasc"></table>
+  <div class="g" style="margin-top:8px">Cada degrau soma faturamento MELI e derruba o ratio. O <b>gap remanescente</b> é o que nenhuma das alavancas cobre — é ele que deve ser declarado à liderança como risco assumido, não escondido.</div></div>
+
+ <div class="card"><h3>Cascata — D1 × mês</h3>
+  <div style="overflow-x:auto"><table id="tMes"></table></div>
+  <div class="g" style="margin-top:8px">BAU extra e BC são distribuídos entre os meses <b>na proporção do faturamento normal de cada mês</b> (sellers crescem seguindo a própria sazonalidade). Por isso o ratio final varia mês a mês: alguns continuam piores que outros.</div></div>
+
+ <div class="card"><h3>Cascata — D1 × mês × faixa de ASP</h3>
+  <div class="chips" id="cS" style="margin-bottom:9px"></div>
+  <div style="overflow-x:auto"><table id="tFx"></table></div>
+  <div class="g" style="margin-top:8px">Distribuído pelo <b>SoB realizado</b> de cada faixa no faturamento MELI da categoria (sem fator de projeção).</div></div>
+
+ <div class="card"><h3>Glossário</h3>
+  <div class="g">
+   <b>Baseline (BAU tendência)</b> = o que faturamos mantendo o ritmo atual. Validado: julho projetado 633,3 vs realizado 633,7 no DM Eficiência (erro 0,06%).<br>
+   <b>BAU extra</b> = quanto mais o fomento normal entrega se performarmos no nível escolhido (mediana / p75 / p90 do nosso próprio histórico de crescimento sustentado em 6 meses). <b>Não é dinheiro novo de BC</b> — é execução melhor do que já existe.<br>
+   <b>BC</b> = crescimento dos grupos econômicos cotados, sobre a base real deles medida no DM (Carteira Assessorada = SEGMENTO '3P - VERTICALES').<br>
+   <b>Gap remanescente</b> = o que sobra sem cobertura. Se positivo, o ratio ainda sobe — só sobe menos.<br>
+   <b>Ratio</b> = faturamento Shopee ÷ faturamento MELI nas faixas prioritárias.
+  </div></div>
+</div>
+<script>
+const J={"fc":[["LARGE",0.8,"2026-07",234.58,619.07],["LARGE",0.8,"2026-08",237.77,592.76],["LARGE",0.8,"2026-09",264.44,551.44],["LARGE",0.8,"2026-10",258.16,570.63],["LARGE",0.8,"2026-11",293.06,993.15],["LARGE",0.8,"2026-12",245.12,513.51],["LARGE",0.9,"2026-07",246.7,633.25],["LARGE",0.9,"2026-08",262,616.96],["LARGE",0.9,"2026-09",303.7,582],["LARGE",0.9,"2026-10",307.59,608.81],["LARGE",0.9,"2026-11",362.17,1069.28],["LARGE",0.9,"2026-12",310.09,555.49],["LARGE",1,"2026-07",259.02,647.56],["LARGE",1,"2026-08",289.34,644.13],["LARGE",1,"2026-09",353.01,620.17],["LARGE",1,"2026-10",376.63,661.74],["LARGE",1,"2026-11",469.51,1186.34],["LARGE",1,"2026-12",422.2,626.86],["SMALL",0.8,"2026-07",117.34,370.33],["SMALL",0.8,"2026-08",115.36,349.23],["SMALL",0.8,"2026-09",114.1,330.2],["SMALL",0.8,"2026-10",103.06,335.8],["SMALL",0.8,"2026-11",127.31,463.41],["SMALL",0.8,"2026-12",121.71,333.9],["SMALL",0.9,"2026-07",122.15,376.03],["SMALL",0.9,"2026-08",123.98,358.72],["SMALL",0.9,"2026-09",126.42,342.38],["SMALL",0.9,"2026-10",117.38,350.74],["SMALL",0.9,"2026-11",148.88,487.01],["SMALL",0.9,"2026-12",145.9,351.97],["SMALL",1,"2026-07",127.15,381.81],["SMALL",1,"2026-08",133.91,369.4],["SMALL",1,"2026-09",142.24,357.59],["SMALL",1,"2026-10",137.91,371.41],["SMALL",1,"2026-11",183.38,523.13],["SMALL",1,"2026-12",189.16,382.42],["H_C",0.8,"2026-07",99.25,211.34],["H_C",0.8,"2026-08",103.18,229.58],["H_C",0.8,"2026-09",183.82,355.23],["H_C",0.8,"2026-10",145.52,342.19],["H_C",0.8,"2026-11",180.49,591.09],["H_C",0.8,"2026-12",175.94,441.16],["H_C",0.9,"2026-07",104.93,215.72],["H_C",0.9,"2026-08",114.27,238.63],["H_C",0.9,"2026-09",213.83,377.12],["H_C",0.9,"2026-10",177.06,371.4],["H_C",0.9,"2026-11",232.8,656.79],["H_C",0.9,"2026-12",237.62,499.92],["H_C",1,"2026-07",110.88,220.34],["H_C",1,"2026-08",127.31,249.42],["H_C",1,"2026-09",253.64,406.9],["H_C",1,"2026-10",224.93,416.66],["H_C",1,"2026-11",322.45,773.9],["H_C",1,"2026-12",359.31,620.51]],"ref":[["LARGE",0.3305,0.2017,0.2956,0.2394],["SMALL",0.3173,0.1953,0.3553,0.2573],["H_C",0.3912,0.2481,0.4775,0.347]],"feas":[["TOTAL",0.7564,"2024-08"],["LARGE",0.9823,"2024-09"],["SMALL",0.5607,"2024-06"],["H_C",0.8506,"2024-08"]],"mix":[["LARGE","200 a 500",0.0923,0.2909],["LARGE","500 a 1500",0.294,0.3826],["LARGE","1500 a 3000",0.3677,0.2378],["LARGE","+3000",0.2459,0.0886],["SMALL","120 a 150",0.0784,0.1269],["SMALL","150 a 200",0.1279,0.2375],["SMALL","200 a 500",0.4216,0.3557],["SMALL","500 a 1500",0.2845,0.2152],["SMALL","+3000",0.0876,0.0647],["H_C","200 a 500",0.2179,0.1001],["H_C","500 a 1500",0.1336,0.3669],["H_C","1500 a 3000",0.4736,0.4826],["H_C","+3000",0.1749,0.0503]],"hist":[["LARGE",568.12,2816.7],["SMALL",349.44,1789.19],["H_C",382.13,1540.23]],"lvl":[["LARGE",192.95,583.81,0.0725,0.0207],["SMALL",109.39,344.78,0.1233,0.0184],["H_C",107.26,274.19,0.2429,0.001]],"sob":[["LARGE","200 a 500",0.1008,0.0996,0.0923,0.3872],["LARGE","500 a 1500",0.2949,0.2889,0.294,0.4626],["LARGE","1500 a 3000",0.3745,0.3782,0.3677,0.2301],["LARGE","+3000",0.2298,0.2333,0.2459,0.1478],["SMALL","120 a 150",0.0775,0.0798,0.0784,0.722],["SMALL","150 a 200",0.1156,0.1244,0.1279,0.6426],["SMALL","200 a 500",0.4361,0.4244,0.4216,0.2922],["SMALL","500 a 1500",0.2803,0.2812,0.2845,0.2751],["SMALL","+3000",0.0904,0.0903,0.0876,0.2262],["H_C","200 a 500",0.2422,0.2473,0.2179,0.2312],["H_C","500 a 1500",0.1514,0.1365,0.1336,0.6675],["H_C","1500 a 3000",0.4437,0.448,0.4736,0.6735],["H_C","+3000",0.1627,0.1682,0.1749,0.1331]],"cap":[["LARGE",0.72,0.83,0.97,2817],["SMALL",0.35,0.48,0.56,1789],["H_C",0.44,0.55,0.79,1540]],"bc":[["LARGE",68.2,6],["SMALL",0,0],["H_C",0,0]]};
+const D1=['LARGE','SMALL','H_C'];
+const NM={LARGE:'Large Appliances',SMALL:'Small Appliances',H_C:'Heating & Cooling',TOTAL:'Todas as 3'};
+const FC={},HIST={},LVL={},CAP={},BC={},SOB={};
+J.fc.forEach(([d,p,m,s,me])=>{FC[d]=FC[d]||{};FC[d][p]=FC[d][p]||{};FC[d][p][m]={s,m:me}});
+J.hist.forEach(([d,s,m])=>HIST[d]={s,m});
+J.lvl.forEach(([d,s,m,gs,gm])=>LVL[d]={s,m,gs,gm});
+J.cap.forEach(([d,me,p75,p90,h25])=>CAP[d]={med:me,p75,p90,h25});
+J.bc.forEach(([d,base,n])=>BC[d]={base,n});
+J.sob.forEach(([d,f,s3,s6,s12,rf])=>{SOB[d]=SOB[d]||[];SOB[d].push({f,s3,s6,s12,rf})});
+const MESF=[...new Set(J.fc.map(r=>r[2]))].sort();
+const MN=['','jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const lb=m=>MN[+m.slice(5)]+'/'+m.slice(2,4);
+let sel='LARGE',phi=0.9,capk='p75',gBc=40,sobW='s3';
+const f0=v=>(v==null||isNaN(v))?'–':Math.round(v).toLocaleString('pt-BR');
+const p1=v=>(v==null||isNaN(v))?'–':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+const ds=()=>sel==='TOTAL'?D1:[sel];
+
+function calc(){
+  let o={shp:0,base:0,bauX:0,bc:0,h25:0,hojeS:0,hojeM:0,porD1:{},mes:{}};
+  MESF.forEach(m=>o.mes[m]={shp:0,base:0,bauX:0,bc:0});
+  ds().forEach(d=>{
+    let s=0,b=0; MESF.forEach(m=>{s+=FC[d][phi][m].s;b+=FC[d][phi][m].m});
+    const c=CAP[d], pct=c[capk];
+    let bauTot=c.h25*(1+pct); if(bauTot<b) bauTot=b;
+    const bauX=bauTot-b;
+    const bcv=(BC[d].base||0)*(gBc/100)*MESF.length;
+    o.porD1[d]={shp:s,base:b,bauX:bauX,bc:bcv,pct:pct,h25:c.h25,sellers:BC[d].n,sbase:BC[d].base};
+    MESF.forEach(m=>{const w=FC[d][phi][m].m/b;
+      o.mes[m].shp+=FC[d][phi][m].s; o.mes[m].base+=FC[d][phi][m].m;
+      o.mes[m].bauX+=bauX*w; o.mes[m].bc+=bcv*w});
+    o.shp+=s;o.base+=b;o.bauX+=bauX;o.bc+=bcv;o.h25+=c.h25;o.hojeS+=LVL[d].s;o.hojeM+=LVL[d].m;
+  });
+  o.hoje=o.hojeS/o.hojeM;
+  o.rBase=o.shp/o.base;
+  o.rBau=o.shp/(o.base+o.bauX);
+  o.rFim=o.shp/(o.base+o.bauX+o.bc);
+  o.gapMi=(o.shp/o.hoje)-(o.base+o.bauX+o.bc);
+  o.evit=(o.rBase-o.rFim)*100;
+  o.rest=(o.rFim-o.hoje)*100;
+  o.detTotal=(o.rBase-o.hoje)*100;
+  o.reqYoY=(o.base+o.bauX+o.bc)/o.h25-1;
+  return o;
+}
+function render(){
+  const o=calc();
+  document.getElementById('hShp').innerHTML=`Nos últimos 3 meses fechados, sem efeito de calendário, a Shopee cresceu <b>${p1(ds().reduce((a,d)=>a+LVL[d].gs*LVL[d].s,0)/ds().reduce((a,d)=>a+LVL[d].s,0)*100)} por mês</b> e o MELI <b>${p1(ds().reduce((a,d)=>a+LVL[d].gm*LVL[d].m,0)/ds().reduce((a,d)=>a+LVL[d].m,0)*100)} por mês</b> em ${NM[sel]}.`;
+  const c0=CAP[sel]||CAP.LARGE;
+  document.getElementById('hBau').innerHTML=`Nosso crescimento <b>sustentado em 6 meses</b> historicamente (2024-26) em ${NM[sel]}: mediana <b>${p1((sel==='TOTAL'?0:c0.med)*100)}</b> · p75 <b>${p1((sel==='TOTAL'?0:c0.p75)*100)}</b> · p90 <b>${p1((sel==='TOTAL'?0:c0.p90)*100)}</b>. Escolher p75 significa "performar num nível que já atingimos em 1 de cada 4 semestres".`;
+  document.getElementById('hBau2').innerHTML=`Escolhido: <b>${capk==='med'?'mediana':capk}</b> → o BAU entrega <b class="bau">+${f0(o.bauX)} Mi</b> acima do baseline. <b>Isso não é verba de BC.</b>`;
+  const sb=o.porD1[sel]||{};
+  const temBase=(sel!=='TOTAL')&&BC[sel].base>0;
+  document.getElementById('hBc').innerHTML= temBase
+    ? `Os <b>${BC[sel].n} grupos econômicos cotados</b> faturam hoje <b>${f0(BC[sel].base)} Mi/mês</b> em ${NM[sel]} (medido no DM, mai-jul/26, Carteira Assessorada). Escolha o crescimento que você considera crível para eles:`
+    : `<b>Sem lista de sellers cotados para ${NM[sel]}</b> ainda — o dial fica em zero. Quando a lista chegar, a base real entra aqui.`;
+  document.getElementById('vBc').innerHTML=temBase?('+'+gBc+'%'):'—';
+  document.getElementById('hBc2').innerHTML=temBase
+    ? `Isso adiciona <b class="bcv">${f0(BC[sel].base*(gBc/100))} Mi/mês</b> = <b class="bcv">+${f0(o.bc)} Mi</b> no semestre.`
+    : '';
+  document.getElementById('alerta').innerHTML = (sel==='H_C')
+    ? `<div class="warn"><b>Atenção — H&amp;C é o caso mais desarmado:</b> o baseline já está no p75 histórico (quase nenhuma capacidade extra de BAU), a categoria é <b>96% 3P</b> (praticamente não há 1P para ajudar) e ainda não há sellers mapeados. É a D1 com maior gap e menos alavancas.</div>` : '';
+  document.getElementById('kp').innerHTML=`
+   <div class="kpi"><div class="l">Ratio hoje<br>(abr-jun/26, s/ calendário)</div><div class="v">${p1(o.hoje*100)}</div><div class="p">ponto de partida</div></div>
+   <div class="kpi"><div class="l">Ratio sem ação<br>jul-dez/26</div><div class="v">${p1(o.rBase*100)}</div><div class="p">deterioração de <b>${o.detTotal.toFixed(1)} pp</b></div></div>
+   <div class="kpi"><div class="l">Ratio com BAU<br>no nível escolhido</div><div class="v bau">${p1(o.rBau*100)}</div><div class="p">só com execução melhor</div></div>
+   <div class="kpi win"><div class="l">Ratio com BAU + BC</div><div class="v bcv">${p1(o.rFim*100)}</div><div class="p">evita <b>${o.evit.toFixed(1)} pp</b> de ${o.detTotal.toFixed(1)} pp = <b>${(o.evit/o.detTotal*100).toFixed(0)}%</b> da deterioração</div></div>
+   <div class="kpi"><div class="l">Gap remanescente<br>p/ congelar no ratio de hoje</div><div class="v gapv">${f0(o.gapMi)}</div><div class="p">ainda descoberto · ratio fica <b>${o.rest>0?'+':''}${o.rest.toFixed(1)} pp</b> acima de hoje</div></div>`;
+
+  const tot=o.base+o.bauX+o.bc+Math.max(0,o.gapMi);
+  const pc=x=>Math.max(0,x/tot*100);
+  document.getElementById('barras').innerHTML=
+   `<div style="width:${pc(o.base)}%;background:#c9b800">BAU tendência ${f0(o.base)}</div>`+
+   `<div style="width:${pc(o.bauX)}%;background:#4a90d9">BAU extra ${f0(o.bauX)}</div>`+
+   `<div style="width:${pc(o.bc)}%;background:#1f9d55">BC ${f0(o.bc)}</div>`+
+   `<div style="width:${pc(Math.max(0,o.gapMi))}%;background:#c0392b">gap ${f0(Math.max(0,o.gapMi))}</div>`;
+
+  let h='<thead><tr><th>Degrau</th><th>MELI (Mi)</th><th>Acumulado</th><th>Ratio</th><th>Efeito no ratio</th></tr></thead><tbody>';
+  h+=`<tr><td>Shopee projetada</td><td>${f0(o.shp)}</td><td>–</td><td>–</td><td>–</td></tr>`;
+  h+=`<tr><td>1 · BAU tendência (baseline)</td><td>${f0(o.base)}</td><td>${f0(o.base)}</td><td>${p1(o.rBase*100)}</td><td>ponto de partida</td></tr>`;
+  h+=`<tr><td>2 · BAU extra (${capk})</td><td class="bau">+${f0(o.bauX)}</td><td>${f0(o.base+o.bauX)}</td><td class="bau">${p1(o.rBau*100)}</td><td class="bau">−${((o.rBase-o.rBau)*100).toFixed(1)} pp</td></tr>`;
+  h+=`<tr><td>3 · BC (sellers cotados)</td><td class="bcv">+${f0(o.bc)}</td><td>${f0(o.base+o.bauX+o.bc)}</td><td class="bcv">${p1(o.rFim*100)}</td><td class="bcv">−${((o.rBau-o.rFim)*100).toFixed(1)} pp</td></tr>`;
+  h+=`<tr><td>Gap remanescente p/ congelar</td><td class="gapv">${f0(o.gapMi)}</td><td>${f0(o.shp/o.hoje)}</td><td>${p1(o.hoje*100)}</td><td>alvo teórico</td></tr>`;
+  h+=`</tbody><tfoot><tr><td>Crescimento YoY exigido do MELI</td><td colspan="4">${p1(o.reqYoY*100)} vs jul-dez/25 (realizado: ${f0(o.h25)} Mi)</td></tr></tfoot>`;
+  document.getElementById('tCasc').innerHTML=h;
+
+  let m='<thead><tr><th>Linha</th>'+MESF.map(x=>`<th>${lb(x)}</th>`).join('')+'<th>jul-dez</th></tr></thead><tbody>';
+  const rows=[['Shopee projetada','shp',''],['BAU tendência','base',''],['BAU extra','bauX','bau'],['BC sellers','bc','bcv']];
+  rows.forEach(([nome,k,cls])=>{ let t=0;
+    m+=`<tr><td>${nome}</td>`+MESF.map(x=>{t+=o.mes[x][k];return `<td class="${cls}">${f0(o.mes[x][k])}</td>`}).join('')+`<td class="${cls}">${f0(t)}</td></tr>`});
+  m+=`<tr><td>MELI final</td>`+MESF.map(x=>`<td>${f0(o.mes[x].base+o.mes[x].bauX+o.mes[x].bc)}</td>`).join('')+`<td>${f0(o.base+o.bauX+o.bc)}</td></tr>`;
+  m+=`<tr><td>Ratio sem ação</td>`+MESF.map(x=>`<td>${p1(o.mes[x].shp/o.mes[x].base*100)}</td>`).join('')+`<td>${p1(o.rBase*100)}</td></tr>`;
+  m+=`<tr><td>Ratio final</td>`+MESF.map(x=>`<td class="bcv">${p1(o.mes[x].shp/(o.mes[x].base+o.mes[x].bauX+o.mes[x].bc)*100)}</td>`).join('')+`<td class="bcv">${p1(o.rFim*100)}</td></tr>`;
+  m+='</tbody>';
+  document.getElementById('tMes').innerHTML=m;
+
+  let g='<thead><tr><th>Categoria · faixa</th><th>SoB</th>'+MESF.map(x=>`<th>${lb(x)}</th>`).join('')+'<th>jul-dez</th></tr></thead><tbody>';
+  ds().forEach(d=>{ const q=o.porD1[d]; const bTot=q.base;
+    SOB[d].forEach(x=>{ const sb2=x[sobW]; let t=0;
+      const cel=MESF.map(mm=>{ const w=FC[d][phi][mm].m/bTot; const v=(q.bauX+q.bc)*w*sb2; t+=v; return `<td class="bcv">${f0(v)}</td>` }).join('');
+      g+=`<tr class="t1"><td>${sel==='TOTAL'?NM[d].split(' ')[0]+' · ':''}${x.f}</td><td>${p1(sb2*100)}</td>${cel}<td class="bcv">${f0(t)}</td></tr>`})});
+  g+='</tbody>';
+  document.getElementById('tFx').innerHTML=g;
+}
+function chips(id,items,cur,set){const c=document.getElementById(id);c.innerHTML='';
+  items.forEach(([k,l])=>{const s=document.createElement('span');s.className='chip'+(k===cur?' on':'');s.innerHTML=l;
+   s.onclick=()=>{set(k);draw()};c.appendChild(s)})}
+function draw(){
+  chips('cE',[...D1.map(d=>[d,NM[d]]),['TOTAL','Todas as 3']],sel,v=>sel=v);
+  chips('cP',[[0.8,'Desacelera forte'],[0.9,'Desacelera devagar'],[1,'Mantém o ritmo']],phi,v=>phi=v);
+  chips('cB',[['med','Mediana histórica'],['p75','p75 (1 em 4 semestres)'],['p90','p90 (quase o recorde)']],capk,v=>capk=v);
+  chips('cS',[['s3','SoB 3 meses'],['s6','6 meses'],['s12','12 meses']],sobW,v=>sobW=v);
+  render();
+}
+document.getElementById('sBc').addEventListener('input',e=>{gBc=+e.target.value;render()});
+(function(){const s=document.createElement('script');s.src='/d/_libs/chart.min.js';s.onload=draw;s.onerror=draw;document.head.appendChild(s)})();
+</script>
+</body>
+</html>

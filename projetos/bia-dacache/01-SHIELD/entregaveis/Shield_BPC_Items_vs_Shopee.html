@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Shield Against Shopee · BPC por item · Mar–Mai 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --meli-yellow: #fff159;
+    --meli-blue: #3483fa;
+    --shopee-orange: #ee4d2d;
+    --bg: #f4f6fa;
+    --card: #ffffff;
+    --text: #1e2a3a;
+    --muted: #7b8a9c;
+    --border: #e2e8f0;
+    --good: #2bb673;
+    --bad: #e74c3c;
+    --warn: #f5a623;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding: 24px;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .header h1 { margin: 0 0 4px 0; font-size: 20px; }
+  .header .sub { color: var(--muted); font-size: 13px; }
+  .filters {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .filters label { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .filters select {
+    background: white;
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    min-width: 480px;
+    cursor: pointer;
+  }
+  .item-info {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .item-title { font-size: 18px; font-weight: 600; margin: 0 0 8px 0; line-height: 1.3; }
+  .item-meta { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+  .item-meta span { display: inline-flex; align-items: center; gap: 6px; }
+  .item-meta b { color: var(--text); font-weight: 600; }
+  .item-meta a { color: var(--meli-blue); text-decoration: none; font-weight: 600; }
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+  .kpi .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .kpi .value { font-size: 26px; font-weight: 700; line-height: 1; }
+  .kpi .value.bpc-good { color: var(--good); }
+  .kpi .value.bpc-warn { color: var(--warn); }
+  .kpi .value.bpc-bad  { color: var(--bad); }
+  .kpi .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .chart-card h3 { margin: 0 0 12px 0; font-size: 15px; }
+  .chart-wrap { position: relative; height: 380px; }
+  .sellers-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+  }
+  .sellers-card h3 { margin: 0 0 12px 0; font-size: 15px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; background: #f9fafc; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .bpc-pill {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .bpc-pill.good { background: #e6f7ee; color: var(--good); }
+  .bpc-pill.warn { background: #fef5e7; color: var(--warn); }
+  .bpc-pill.bad  { background: #fdecec; color: var(--bad); }
+  .footer { margin-top: 24px; font-size: 12px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>Shield Against Shopee · BPC por item</h1>
+    <div class="sub">BOX_ALL_ABC · MLB · COMP_SITE_ID = SPE · sem filtros · semana ISO (seg-dom) · período 01/03 → 18/05/2026</div>
+  </div>
+  <div class="sub">Gerado em 19/05/2026</div>
+</div>
+
+<div class="filters">
+  <label for="itemSelect">Produto (MELI_ID):</label>
+  <select id="itemSelect"></select>
+</div>
+
+<div class="item-info" id="itemInfo"></div>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="chart-card">
+  <h3>Evolução semanal: BPC vs preços (Meli e Shopee)</h3>
+  <div class="chart-wrap"><canvas id="chartEvol"></canvas></div>
+</div>
+
+<div class="sellers-card">
+  <h3>Sellers que compuseram o BPC (período inteiro, ordenado por visitas)</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Seller</th>
+        <th class="num">Visits Match</th>
+        <th class="num">Visits Favorable</th>
+        <th class="num">Visits Expensive</th>
+        <th class="num">BPC</th>
+        <th class="num">Share SoB</th>
+      </tr>
+    </thead>
+    <tbody id="sellersTbody"></tbody>
+  </table>
+</div>
+
+<div class="footer">
+  Tabela origem: <code>meli-bi-data.WHOWNER.BT_COM_FAVORABILITY</code> · UNNEST(COMPETITORS) WHERE COMP_SITE_ID = 'SPE'
+</div>
+
+<script>
+// ============ DADOS ============
+const ITEMS = {};
+
+const titles = [
+  {id:"8742310", title:"Micro-ondas Electrolux de bancada Branco com Função Tira Odor e Manter Aquecido 34L MEO44", brand:"Electrolux", d1:"LARGE APPLIANCES", d2:"BUILT IN", link:"https://produto.mercadolivre.com.br/MLB-5908979438-micro-ondas-electrolux-de-bancada-branco-com-funco-tira-odor-e-manter-aquecido-34l-meo44-127v-_JM"},
+  {id:"14815387", title:"Lavadora Semiautomática Lcs 10kg Branca Colormaq 110v Branco", brand:"Colormaq", d1:"LARGE APPLIANCES", d2:"LAUNDRY & DISHWASHERS", link:"https://produto.mercadolivre.com.br/MLB-5899143262-lavadora-semiautomatica-lcs-10kg-branca-colormaq-110v-branco-127v-_JM"},
+  {id:"18363110", title:"Micro-ondas Electrolux 31L cor Inox Espelhado com Painel Integrado e Função Tira Odor MI41S", brand:"Electrolux", d1:"LARGE APPLIANCES", d2:"BUILT IN", link:"https://produto.mercadolivre.com.br/MLB-2036335692-micro-ondas-electrolux-31l-cor-inox-espelhado-com-painel-integrado-e-funco-tira-odor-mi41s-127v-_JM"},
+  {id:"19119490", title:"Cooktop Britânia BCT5P 5 Bocas a Gás Preto de Embutir Bivolt", brand:"Britânia", d1:"LARGE APPLIANCES", d2:"BUILT IN", link:"https://produto.mercadolivre.com.br/MLB-4161273275-cooktop-britnia-bct5p-5-bocas-a-gas-preto-de-embutir-bivolt-127220v-_JM"},
+  {id:"19481428", title:"Cooktop de Indução 4 Bocas Preto com Trava de Segurança Dako Supreme", brand:"Dako", d1:"LARGE APPLIANCES", d2:"BUILT IN", link:"https://produto.mercadolivre.com.br/MLB-5394869328-cooktop-de-induco-4-bocas-preto-com-trava-de-seguranca-dako-supreme-220v-_JM"},
+  {id:"20960488", title:"Cooktop Indução Philco Pct20p Portátil 2 Bocas 8 Potencias Cor Preto", brand:"Philco", d1:"LARGE APPLIANCES", d2:"BUILT IN", link:"https://produto.mercadolivre.com.br/MLB-4612446877-cooktop-induco-philco-pct20p-portatil-2-bocas-preto-220v-preto-220v-_JM"},
+  {id:"26208554", title:"Centrifuga De Roupas Giromax 15 Kg Preta Suggar Preto", brand:"Suggar", d1:"LARGE APPLIANCES", d2:"LAUNDRY & DISHWASHERS", link:"https://produto.mercadolivre.com.br/MLB-4335368321-centrifuga-de-roupas-giromax-15-kg-preta-suggar-preto-220v-_JM"},
+  {id:"29586013", title:"Centrifuga De Roupas Giromax 15 Kg Branca Suggar Cor Branco", brand:"Suggar", d1:"LARGE APPLIANCES", d2:"LAUNDRY & DISHWASHERS", link:"https://produto.mercadolivre.com.br/MLB-4190411429-centrifuga-de-roupas-giromax-15-kg-branca-suggar-cor-branco-127v-_JM"},
+  {id:"34784721", title:"Fogão 4 Bocas Itatiaia Itaglass Plus Vidro Com Trempe De Ferro E Forno 48l Preto Fosco", brand:"Itatiaia", d1:"LARGE APPLIANCES", d2:"BUILT IN", link:"https://produto.mercadolivre.com.br/MLB-5901921610-fogo-4-bocas-itatiaia-itaglass-plus-vidro-com-trempe-de-ferro-e-forno-48l-preto-fosco-127220v-_JM"},
+  {id:"35352522", title:"Suggar Lavamax Eco LE8001BR tanquinho branco", brand:"Suggar", d1:"LARGE APPLIANCES", d2:"LAUNDRY & DISHWASHERS", link:"https://produto.mercadolivre.com.br/MLB-5434327496-suggar-lavamax-eco-le8001br-tanquinho-branco-127v-_JM"},
+  {id:"38478684", title:"Fogão Itatiaia Star New 4 Bocas Mesa Inox Forno 48l-bivolt", brand:"Itatiaia", d1:"LARGE APPLIANCES", d2:"BUILT IN", link:"https://produto.mercadolivre.com.br/MLB-4659940036-fogo-itatiaia-star-new-4-bocas-mesa-inox-forno-48l-bivolt-preto-127220v-_JM"},
+  {id:"41208451", title:"Micro-ondas 33L Philco Limpa Fácil 1400W 127V PMO38S", brand:"Philco", d1:"LARGE APPLIANCES", d2:"BUILT IN", link:"https://produto.mercadolivre.com.br/MLB-3885510083-micro-ondas-33l-philco-limpa-facil-1400w-127v-pmo38s-_JM"},
+  {id:"41353416", title:"Lava Louças Praxis Portátil Llpp Semi-automática Preto", brand:"Praxis", d1:"LARGE APPLIANCES", d2:"LAUNDRY & DISHWASHERS", link:"https://produto.mercadolivre.com.br/MLB-3916630657-lava-loucas-praxis-portatil-llpp-semi-automatica-preto-127v-_JM"},
+  {id:"60867859", title:"Micro-ondas Philco 28l Limpa Fácil 1100w Preto Pmo30p", brand:"Philco", d1:"LARGE APPLIANCES", d2:"BUILT IN", link:"https://produto.mercadolivre.com.br/MLB-4652258811-micro-ondas-philco-28l-limpa-facil-1100w-preto-pmo30p-127v-_JM"},
+  {id:"62700443", title:"Frigobar Hq 93 Litros Cinza Bc-93 Cinza", brand:"HQ", d1:"LARGE APPLIANCES", d2:"REFRIGERATION", link:"https://produto.mercadolivre.com.br/MLB-6160278260-frigobar-hq-93-litros-cinza-bc-93-cinza-127v-_JM"}
+];
+
+titles.forEach(t => { ITEMS[t.id] = { ...t, weekly: [], sellers: [] }; });
+
+// Weekly data: [meli_id, week, meli_price, shopee_price, v_match, v_fav, v_exp, bpc]
+const WEEKLY = [
+  ["8742310","2026-02-23",725.05,1058.9,63966.0,63966.0,0.0,1.0],
+  ["8742310","2026-03-02",697.43,1058.9,414698.55,414698.55,0.0,1.0],
+  ["8742310","2026-03-09",668.26,1056.06,291767.3,291767.3,0.0,1.0],
+  ["8742310","2026-03-16",686.74,1058.9,219037.9,219037.9,0.0,1.0],
+  ["8742310","2026-03-23",682.3,918.59,202061.4,202061.4,0.0,1.0],
+  ["8742310","2026-03-30",699.0,782.9,255620.0,255620.0,0.0,1.0],
+  ["8742310","2026-04-06",699.0,735.76,183491.35,125575.15,57916.2,0.684],
+  ["8742310","2026-04-13",698.99,664.7,90061.8,0.0,90061.8,0.0],
+  ["8742310","2026-04-20",692.95,725.09,126385.6,49003.2,77382.4,0.388],
+  ["8742310","2026-04-27",686.81,696.87,125985.2,16512.6,109472.6,0.131],
+  ["8742310","2026-05-04",669.48,725.0,148819.8,123832.8,24987.0,0.832],
+  ["8742310","2026-05-11",661.05,764.44,201120.6,201120.6,0.0,1.0],
+  ["8742310","2026-05-18",661.05,754.31,30671.4,30671.4,0.0,1.0],
+  ["14815387","2026-02-23",536.56,489.0,113464.0,0.0,113464.0,0.0],
+  ["14815387","2026-03-02",536.56,628.97,190683.75,190683.75,0.0,1.0],
+  ["14815387","2026-03-09",551.37,596.84,567575.2,428862.0,138713.2,0.756],
+  ["14815387","2026-03-16",550.58,592.76,767393.8,675026.8,92367.0,0.88],
+  ["14815387","2026-03-23",563.77,513.57,463908.6,93375.6,370533.0,0.201],
+  ["14815387","2026-03-30",545.46,497.75,872902.7,218911.7,653991.0,0.251],
+  ["14815387","2026-04-06",543.66,537.22,746871.05,502239.05,244632.0,0.672],
+  ["14815387","2026-04-13",552.66,506.2,375095.4,0.0,375095.4,0.0],
+  ["14815387","2026-04-20",552.06,535.67,528834.2,205760.4,323073.8,0.389],
+  ["14815387","2026-04-27",523.41,523.57,508221.8,308006.6,200215.2,0.606],
+  ["14815387","2026-05-04",521.29,483.18,481595.4,68352.0,413243.4,0.142],
+  ["14815387","2026-05-11",516.13,474.07,541065.4,0.0,541065.4,0.0],
+  ["14815387","2026-05-18",516.13,541.5,69760.2,69760.2,0.0,1.0],
+  ["18363110","2026-02-23",905.1,860.7,45061.0,0.0,45061.0,0.0],
+  ["18363110","2026-03-02",830.62,857.98,292484.0,193908.25,98575.75,0.663],
+  ["18363110","2026-03-09",807.99,852.59,238953.0,238953.0,0.0,1.0],
+  ["18363110","2026-03-16",872.19,907.84,214724.5,169770.5,44954.0,0.791],
+  ["18363110","2026-03-23",873.39,943.2,129656.4,129656.4,0.0,1.0],
+  ["18363110","2026-03-30",795.87,927.86,241285.2,241285.2,0.0,1.0],
+  ["18363110","2026-04-06",831.2,852.2,230029.85,175084.25,54945.6,0.761],
+  ["18363110","2026-04-13",898.99,766.78,152479.8,18529.2,133950.6,0.122],
+  ["18363110","2026-04-20",857.9,749.0,106704.0,27524.4,79179.6,0.258],
+  ["18363110","2026-04-27",775.65,749.0,172881.6,114766.8,58114.8,0.664],
+  ["18363110","2026-05-04",889.42,866.2,199050.6,140960.4,58090.2,0.708],
+  ["18363110","2026-05-11",881.07,863.42,199058.0,53518.8,145539.2,0.269],
+  ["18363110","2026-05-18",879.24,870.19,25522.2,0.0,25522.2,0.0],
+  ["19119490","2026-02-23",608.9,459.9,3187.0,0.0,3187.0,0.0],
+  ["19119490","2026-03-02",576.68,528.12,19383.95,9873.2,9510.75,0.509],
+  ["19119490","2026-03-09",551.9,559.9,9389.0,9389.0,0.0,1.0],
+  ["19119490","2026-03-16",852.96,559.9,3147.0,0.0,3147.0,0.0],
+  ["19481428","2026-02-23",1190.0,1199.99,91306.0,91306.0,0.0,1.0],
+  ["19481428","2026-03-02",1184.4,1191.64,696711.0,544856.75,151854.25,0.782],
+  ["19481428","2026-03-09",1169.53,1267.04,695002.4,695002.4,0.0,1.0],
+  ["19481428","2026-03-16",1120.38,1295.17,827484.1,827484.1,0.0,1.0],
+  ["19481428","2026-03-23",1134.71,1332.1,662844.6,662844.6,0.0,1.0],
+  ["19481428","2026-03-30",1158.67,1224.01,845391.6,845391.6,0.0,1.0],
+  ["19481428","2026-04-06",1199.0,1380.46,706793.5,706793.5,0.0,1.0],
+  ["19481428","2026-04-13",1171.99,1264.49,360193.2,360193.2,0.0,1.0],
+  ["19481428","2026-04-20",1129.89,1389.5,521390.8,521390.8,0.0,1.0],
+  ["19481428","2026-04-27",1261.35,1236.04,498013.2,129312.0,368701.2,0.26],
+  ["19481428","2026-05-04",1289.99,1194.91,447026.2,38963.2,408063.0,0.087],
+  ["19481428","2026-05-11",1113.04,1198.71,441047.8,384410.8,56637.0,0.872],
+  ["19481428","2026-05-18",1059.0,1199.99,59503.8,59503.8,0.0,1.0],
+  ["20960488","2026-03-02",689.9,529.9,8178.95,0.0,8178.95,0.0],
+  ["20960488","2026-03-09",689.9,529.9,15424.0,0.0,15424.0,0.0],
+  ["20960488","2026-03-16",666.34,529.9,13784.0,0.0,13784.0,0.0],
+  ["20960488","2026-03-23",603.21,529.9,25776.6,11009.4,14767.2,0.427],
+  ["20960488","2026-03-30",1048.0,529.9,25214.4,0.0,25214.4,0.0],
+  ["20960488","2026-04-06",932.37,514.78,25035.467,5732.0,19303.467,0.229],
+  ["20960488","2026-04-13",1099.0,499.9,3202.2,0.0,3202.2,0.0],
+  ["20960488","2026-04-27",1100.0,499.9,1314.0,0.0,1314.0,0.0],
+  ["26208554","2026-03-02",565.72,559.29,28293.4,5773.8,22519.6,0.204],
+  ["26208554","2026-03-09",565.72,677.45,15639.4,15639.4,0.0,1.0],
+  ["26208554","2026-03-30",519.0,574.47,28088.425,28088.425,0.0,1.0],
+  ["26208554","2026-04-06",596.68,518.72,22642.4,9757.0,12885.4,0.431],
+  ["26208554","2026-04-13",643.1,513.77,15243.2,0.0,15243.2,0.0],
+  ["26208554","2026-04-20",639.52,529.0,22273.8,0.0,22273.8,0.0],
+  ["26208554","2026-04-27",643.66,529.0,18162.6,0.0,18162.6,0.0],
+  ["26208554","2026-05-04",629.0,529.0,8150.4,0.0,8150.4,0.0],
+  ["26208554","2026-05-11",659.9,529.0,2668.8,0.0,2668.8,0.0],
+  ["29586013","2026-02-23",577.89,519.9,16870.0,0.0,16870.0,0.0],
+  ["29586013","2026-03-02",578.22,513.94,131881.0,0.0,131881.0,0.0],
+  ["29586013","2026-03-09",547.62,496.55,119678.4,20777.5,98900.9,0.174],
+  ["29586013","2026-03-16",566.75,497.49,145728.8,0.0,145728.8,0.0],
+  ["29586013","2026-03-23",579.52,494.64,183875.0,0.0,183875.0,0.0],
+  ["29586013","2026-03-30",586.73,498.4,249997.6,0.0,249997.6,0.0],
+  ["29586013","2026-04-06",614.75,499.9,114276.8,0.0,114276.8,0.0],
+  ["29586013","2026-04-13",577.04,497.72,87041.4,0.0,87041.4,0.0],
+  ["29586013","2026-04-20",559.0,499.9,106557.2,0.0,106557.2,0.0],
+  ["29586013","2026-04-27",634.62,499.9,85868.0,0.0,85868.0,0.0],
+  ["29586013","2026-05-04",630.53,499.9,84684.4,0.0,84684.4,0.0],
+  ["29586013","2026-05-11",630.53,499.9,86984.8,0.0,86984.8,0.0],
+  ["29586013","2026-05-18",630.53,452.0,9343.8,0.0,9343.8,0.0],
+  ["34784721","2026-02-23",883.0,883.0,12619.0,12619.0,0.0,1.0],
+  ["34784721","2026-03-02",916.4,883.65,99207.0,40741.0,58466.0,0.411],
+  ["34784721","2026-03-09",911.05,896.68,104350.0,26202.3,78147.7,0.251],
+  ["34784721","2026-03-16",1052.31,932.44,115755.85,0.0,115755.85,0.0],
+  ["34784721","2026-03-23",877.69,975.17,62548.8,50142.6,12406.2,0.802],
+  ["34784721","2026-03-30",904.36,995.85,115735.4,111097.9,4637.5,0.96],
+  ["34784721","2026-04-06",982.35,924.31,94182.6,15684.2,78498.4,0.166],
+  ["34784721","2026-04-13",977.14,943.97,48841.8,19196.4,29645.4,0.393],
+  ["34784721","2026-04-20",1007.72,987.32,87642.4,34807.2,52835.2,0.397],
+  ["34784721","2026-04-27",1002.02,955.17,94432.6,12521.4,81911.2,0.133],
+  ["34784721","2026-05-04",945.16,928.3,26084.4,0.0,26084.4,0.0],
+  ["35352522","2026-02-23",549.9,409.47,16451.0,6580.4,9870.6,0.4],
+  ["35352522","2026-03-02",546.89,395.93,108019.0,2437.05,105581.95,0.023],
+  ["35352522","2026-03-09",542.49,386.17,67514.8,1683.9,65830.9,0.025],
+  ["35352522","2026-03-16",526.07,314.74,78005.2,11424.0,66581.2,0.146],
+  ["35352522","2026-03-23",526.21,378.68,75592.6,18015.85,57576.75,0.238],
+  ["35352522","2026-03-30",531.0,314.74,95580.65,0.0,95580.65,0.0],
+  ["35352522","2026-04-06",528.47,314.74,106563.0,0.0,106563.0,0.0],
+  ["35352522","2026-04-13",529.44,314.74,59566.2,0.0,59566.2,0.0],
+  ["35352522","2026-04-20",529.01,314.74,100081.4,0.0,100081.4,0.0],
+  ["35352522","2026-04-27",551.83,314.74,95237.8,0.0,95237.8,0.0],
+  ["35352522","2026-05-04",556.9,398.89,23139.0,0.0,23139.0,0.0],
+  ["38478684","2026-02-23",819.0,579.0,57504.0,0.0,57504.0,0.0],
+  ["38478684","2026-03-02",763.81,568.19,398844.0,0.0,398844.0,0.0],
+  ["38478684","2026-03-09",758.22,617.85,342079.8,0.0,342079.8,0.0],
+  ["38478684","2026-03-16",759.55,610.64,245056.55,0.0,245056.55,0.0],
+  ["38478684","2026-03-23",759.78,668.91,196930.8,0.0,196930.8,0.0],
+  ["38478684","2026-03-30",741.32,623.84,343052.8,0.0,343052.8,0.0],
+  ["38478684","2026-04-06",722.5,559.0,380892.05,0.0,380892.05,0.0],
+  ["38478684","2026-04-13",779.0,626.49,237797.4,0.0,237797.4,0.0],
+  ["38478684","2026-04-20",771.51,673.8,177370.8,0.0,177370.8,0.0],
+  ["38478684","2026-04-27",756.42,673.8,272230.8,0.0,272230.8,0.0],
+  ["38478684","2026-05-04",752.9,608.12,349171.8,0.0,349171.8,0.0],
+  ["38478684","2026-05-11",750.81,600.61,407118.6,0.0,407118.6,0.0],
+  ["38478684","2026-05-18",815.0,559.0,54204.0,0.0,54204.0,0.0],
+  ["41208451","2026-02-23",849.9,649.9,32852.0,0.0,32852.0,0.0],
+  ["41208451","2026-03-02",865.22,674.58,206018.4,11494.95,194523.45,0.056],
+  ["41208451","2026-03-09",639.92,850.53,148079.6,90657.6,57422.0,0.612],
+  ["41208451","2026-03-16",617.17,756.66,108555.0,106060.9,2494.1,0.977],
+  ["41208451","2026-03-23",615.0,834.3,62807.4,62807.4,0.0,1.0],
+  ["41208451","2026-03-30",615.0,1025.82,98073.0,98073.0,0.0,1.0],
+  ["41208451","2026-04-06",615.0,882.66,119589.7,119589.7,0.0,1.0],
+  ["41208451","2026-04-13",615.0,782.17,72045.0,72045.0,0.0,1.0],
+  ["41208451","2026-04-20",626.52,1030.9,90891.6,90891.6,0.0,1.0],
+  ["41208451","2026-04-27",728.63,1030.9,75235.8,75235.8,0.0,1.0],
+  ["41208451","2026-05-04",722.78,854.65,54579.0,54579.0,0.0,1.0],
+  ["41208451","2026-05-11",599.0,769.9,47443.4,47443.4,0.0,1.0],
+  ["41208451","2026-05-18",599.0,769.9,6226.8,6226.8,0.0,1.0],
+  ["41353416","2026-02-23",948.96,999.0,42080.0,42080.0,0.0,1.0],
+  ["41353416","2026-03-02",917.36,931.8,305498.0,252587.25,52910.75,0.827],
+  ["41353416","2026-03-09",879.38,966.12,268676.25,239536.65,29139.6,0.892],
+  ["41353416","2026-03-16",944.6,986.56,290352.45,188212.5,102139.95,0.648],
+  ["41353416","2026-03-23",1029.9,999.0,178711.4,20999.6,157711.8,0.118],
+  ["41353416","2026-03-30",1023.72,982.09,347583.8,67090.0,280493.8,0.193],
+  ["41353416","2026-04-06",978.03,984.87,266249.7,97739.5,168510.2,0.367],
+  ["41353416","2026-04-13",985.19,993.17,159921.0,62357.4,97563.6,0.39],
+  ["41353416","2026-04-20",1029.9,999.0,261940.2,0.0,261940.2,0.0],
+  ["41353416","2026-04-27",1035.76,999.0,264581.6,33923.4,230658.2,0.128],
+  ["41353416","2026-05-04",1055.54,985.78,253524.0,0.0,253524.0,0.0],
+  ["41353416","2026-05-11",1279.21,974.49,277022.0,0.0,277022.0,0.0],
+  ["41353416","2026-05-18",1159.99,999.0,33947.4,0.0,33947.4,0.0],
+  ["60867859","2026-02-23",707.99,878.9,25103.0,15061.8,10041.2,0.6],
+  ["60867859","2026-03-02",656.93,630.74,157952.1,90267.2,67684.9,0.572],
+  ["60867859","2026-03-09",599.0,627.44,118499.2,106709.2,11790.0,0.9],
+  ["60867859","2026-03-16",599.0,630.43,103957.8,92269.8,11688.0,0.888],
+  ["60867859","2026-03-23",617.72,640.21,64731.6,53614.2,11117.4,0.828],
+  ["60867859","2026-03-30",702.45,613.22,101371.141,26224.2,75146.941,0.259],
+  ["60867859","2026-04-06",659.0,624.92,62139.948,0.0,62139.948,0.0],
+  ["60867859","2026-04-13",745.64,640.0,34288.941,0.0,34288.941,0.0],
+  ["60867859","2026-04-20",791.0,724.44,25638.4,11313.6,14324.8,0.441],
+  ["60867859","2026-04-27",791.0,799.9,6452.4,6452.4,0.0,1.0],
+  ["60867859","2026-05-04",721.22,794.9,10422.0,10422.0,0.0,1.0],
+  ["60867859","2026-05-11",759.09,695.79,41272.6,7764.6,33508.0,0.188],
+  ["60867859","2026-05-18",759.99,672.83,6910.2,0.0,6910.2,0.0],
+  ["62700443","2026-03-30",1116.94,899.0,6627.0,0.0,6627.0,0.0],
+  ["62700443","2026-04-06",999.0,977.0,7486.8,0.0,7486.8,0.0],
+  ["62700443","2026-04-13",999.0,977.0,5070.2,0.0,5070.2,0.0]
+];
+
+// Sellers data: [meli_id, seller, v_match, v_fav, v_exp, bpc]
+const SELLERS = [
+  ["8742310","Mercado Livre Eletronicos",1953532.1,1601599.1,351933.0,0.82],
+  ["8742310","LOJAOFICIALCASASBAHIA",331963.8,331963.8,0.0,1.0],
+  ["8742310","ELECTROLUXFULL",36643.0,36643.0,0.0,1.0],
+  ["8742310","GAZINSHOP",31548.0,23661.0,7887.0,0.75],
+  ["14815387","LOJAOFICIALCASASBAHIA",5391298.3,2505220.3,2886078.0,0.465],
+  ["14815387","COLORVISÃO",373144.8,93375.6,279769.2,0.25],
+  ["14815387","REDEUD",187237.2,0.0,187237.2,0.0],
+  ["14815387","MEGAMAMUTE FULLMG",182777.6,69468.6,113309.0,0.38],
+  ["14815387","GAZINSHOP",92913.6,92913.6,0.0,1.0],
+  ["18363110","Mercado Livre Eletronicos",1926983.9,1183050.95,743932.95,0.614],
+  ["18363110","ELECTROLUXFULL",213105.85,213105.85,0.0,1.0],
+  ["18363110","OFICIALELECTROLUX",81839.0,81839.0,0.0,1.0],
+  ["18363110","WISE SHOPPING",25961.4,25961.4,0.0,1.0],
+  ["19119490","PRIME_BRITANIA",31959.95,19262.2,12697.75,0.603],
+  ["19119490","BL20250414075319",3147.0,0.0,3147.0,0.0],
+  ["19481428","ELETROSID",3416890.45,3416890.45,0.0,1.0],
+  ["19481428","DUX ELETRO",1329726.0,1329726.0,0.0,1.0],
+  ["19481428","DIRETOCOMVOCEFULL",828053.95,194311.15,633742.8,0.235],
+  ["19481428","BUMPERMAGAZINEE",505228.8,373533.0,131695.8,0.739],
+  ["19481428","SEVENMEGASTOR",329516.8,329516.8,0.0,1.0],
+  ["19481428","TUDAO_TECH_LTDA",253603.2,185640.6,67962.6,0.732],
+  ["19481428","MEGAMAMUTE FULLMG",189689.0,37834.75,151854.25,0.2],
+  ["20960488","PRIME_BRITANIA",43903.95,11009.4,32894.55,0.251],
+  ["20960488","MEMGMARKET",25214.4,0.0,25214.4,0.0],
+  ["20960488","AMARAL_CENTER",19259.6,0.0,19259.6,0.0],
+  ["20960488","COTTISHOPP",13729.0,0.0,13729.0,0.0],
+  ["20960488","CASADOCOOKTOP",10090.667,0.0,10090.667,0.0],
+  ["20960488","DRESCHMAQUINASSLTDA",5732.0,5732.0,0.0,1.0],
+  ["26208554","XCOMM.",93240.4,21413.2,71827.2,0.23],
+  ["26208554","SUGGARELETRODOMÉSTICOS",45995.825,37845.425,8150.4,0.823],
+  ["26208554","REDEUD",21926.2,0.0,21926.2,0.0],
+  ["29586013","SUGGARELETRODOMÉSTICOS",647610.2,8237.5,639372.7,0.013],
+  ["29586013","RAROCASAEDECOR",376306.0,0.0,376306.0,0.0],
+  ["29586013","INPOWER3",144225.0,0.0,144225.0,0.0],
+  ["29586013","REDEUD",135548.8,0.0,135548.8,0.0],
+  ["29586013","CLIMARIOREFRIGERACAO",106557.2,0.0,106557.2,0.0],
+  ["29586013","ENGAGEELETRO",12540.0,12540.0,0.0,1.0],
+  ["34784721","ECONTINENTAL ES",275232.0,53905.3,221326.7,0.196],
+  ["34784721","ELETRO2U",251260.6,209159.1,42101.5,0.832],
+  ["34784721","LOJAOFICIALCASASBAHIA",141531.4,24143.4,117388.0,0.171],
+  ["34784721","MEGAMAMUTE OFICIALES",109034.65,0.0,109034.65,0.0],
+  ["34784721","RAROCASAEDECOR",53425.2,12619.0,40806.2,0.236],
+  ["34784721","REDE_MARKETPLACE_ES_1",30916.0,23185.2,7730.8,0.75],
+  ["35352522","INPOWER3",319884.6,10701.35,309183.25,0.034],
+  ["35352522","RAROCASAEDECOR",300649.9,29439.85,271210.05,0.098],
+  ["35352522","REDEUD",205216.15,0.0,205216.15,0.0],
+  ["38478684","RAROCASAEDECOR",1900823.2,0.0,1900823.2,0.0],
+  ["38478684","MEGAMAMUTE OFICIALES",1000814.8,0.0,1000814.8,0.0],
+  ["38478684","DUX ELETRO",506411.4,0.0,506411.4,0.0],
+  ["38478684","LOJASEDMILOFICIAL",54204.0,0.0,54204.0,0.0],
+  ["41208451","Mercado Livre Eletronicos",906139.7,830261.2,75878.5,0.916],
+  ["41208451","DUCKSHOP.LTDA",154207.0,0.0,154207.0,0.0],
+  ["41208451","PRIME_BRITANIA",62050.0,4843.95,57206.05,0.078],
+  ["41353416","INPOWER3",1673588.15,120746.85,1552841.3,0.072],
+  ["41353416","SUCESSOMAGAZINE",475580.9,475580.9,0.0,1.0],
+  ["41353416","SUCESSOTOTAL",229282.25,200142.65,29139.6,0.873],
+  ["41353416","LOI BRASIL",162102.2,0.0,162102.2,0.0],
+  ["41353416","RAROCASAEDECOR",161129.3,68595.9,92533.4,0.426],
+  ["41353416","LOJA_OFICIAL_PRAXIS",108945.0,0.0,108945.0,0.0],
+  ["41353416","ECOMNOMIZE INC.",97380.0,97380.0,0.0,1.0],
+  ["41353416","OUTLET_IMPORT",42080.0,42080.0,0.0,1.0],
+  ["60867859","BELMICROSHOP",593199.33,377874.2,215325.13,0.637],
+  ["60867859","LOI BRASIL",161203.2,42224.8,118978.4,0.262],
+  ["60867859","REVERSAPRIMELTDA",4336.8,0.0,4336.8,0.0],
+  ["62700443","BELMICROSHOP",19184.0,0.0,19184.0,0.0]
+];
+
+WEEKLY.forEach(r => {
+  const it = ITEMS[r[0]];
+  if (it) it.weekly.push({week:r[1], meli_price:r[2], shopee_price:r[3], v_match:r[4], v_fav:r[5], v_exp:r[6], bpc:r[7]});
+});
+
+SELLERS.forEach(r => {
+  const it = ITEMS[r[0]];
+  if (it) it.sellers.push({name:r[1], v_match:r[2], v_fav:r[3], v_exp:r[4], bpc:r[5]});
+});
+
+// ============ FORMATTERS ============
+const fmtBR = n => (n==null||isNaN(n)) ? "—" : n.toLocaleString("pt-BR",{minimumFractionDigits:0, maximumFractionDigits:0});
+const fmtMoney = n => (n==null||isNaN(n)) ? "—" : "R$ " + n.toLocaleString("pt-BR",{minimumFractionDigits:2, maximumFractionDigits:2});
+const fmtPct = n => (n==null||isNaN(n)) ? "—" : (n*100).toLocaleString("pt-BR",{minimumFractionDigits:1, maximumFractionDigits:1}) + "%";
+const bpcClass = b => b>=0.7 ? "good" : b>=0.4 ? "warn" : "bad";
+
+// ============ POPULATE DROPDOWN ============
+const sel = document.getElementById("itemSelect");
+Object.entries(ITEMS)
+  .sort((a,b) => a[1].title.localeCompare(b[1].title))
+  .forEach(([id, it]) => {
+    const opt = document.createElement("option");
+    opt.value = id;
+    const shortTitle = it.title.length>70 ? it.title.slice(0,70)+"…" : it.title;
+    opt.textContent = `${id} — ${shortTitle}`;
+    sel.appendChild(opt);
+  });
+
+let chart = null;
+
+function render(meliId) {
+  const it = ITEMS[meliId];
+  if (!it) return;
+
+  // Header info
+  const info = document.getElementById("itemInfo");
+  info.innerHTML = "";
+  const h = document.createElement("div"); h.className="item-title"; h.textContent = it.title;
+  const meta = document.createElement("div"); meta.className="item-meta";
+  const buildSpan = (label, value, isLink) => {
+    const s = document.createElement("span");
+    const lbl = document.createElement("span"); lbl.textContent = label + ": "; lbl.style.color="var(--muted)";
+    const val = isLink ? document.createElement("a") : document.createElement("b");
+    if (isLink) { val.href = value; val.target="_blank"; val.textContent = "abrir anúncio →"; }
+    else { val.textContent = value; }
+    s.appendChild(lbl); s.appendChild(val);
+    return s;
+  };
+  meta.appendChild(buildSpan("MELI_ID", it.id));
+  meta.appendChild(buildSpan("Marca", it.brand));
+  meta.appendChild(buildSpan("D1", it.d1));
+  meta.appendChild(buildSpan("D2", it.d2));
+  meta.appendChild(buildSpan("Link", it.link, true));
+  info.appendChild(h); info.appendChild(meta);
+
+  // KPIs (período: aggregate)
+  const totalMatch = it.weekly.reduce((s,w)=>s+w.v_match,0);
+  const totalFav = it.weekly.reduce((s,w)=>s+w.v_fav,0);
+  const totalExp = it.weekly.reduce((s,w)=>s+w.v_exp,0);
+  const bpcPeriod = totalMatch>0 ? totalFav/totalMatch : null;
+  const meliPriceWeighted = totalMatch>0 ? it.weekly.reduce((s,w)=>s+w.meli_price*w.v_match,0)/totalMatch : null;
+  const shopeePriceWeighted = totalMatch>0 ? it.weekly.reduce((s,w)=>s+w.shopee_price*w.v_match,0)/totalMatch : null;
+  const priceGap = (meliPriceWeighted!=null && shopeePriceWeighted!=null && shopeePriceWeighted!=0) ? (meliPriceWeighted - shopeePriceWeighted)/shopeePriceWeighted : null;
+
+  const kpis = document.getElementById("kpis");
+  kpis.innerHTML = "";
+  const mkKpi = (label, value, sub, cls) => {
+    const c = document.createElement("div"); c.className="kpi";
+    const l = document.createElement("div"); l.className="label"; l.textContent=label;
+    const v = document.createElement("div"); v.className="value "+(cls||""); v.textContent=value;
+    const s = document.createElement("div"); s.className="sub"; s.textContent=sub;
+    c.appendChild(l); c.appendChild(v); c.appendChild(s);
+    return c;
+  };
+  kpis.appendChild(mkKpi("BPC período", fmtPct(bpcPeriod), `${fmtBR(totalFav)} favorable / ${fmtBR(totalMatch)} match`, bpcPeriod!=null?"bpc-"+bpcClass(bpcPeriod):""));
+  kpis.appendChild(mkKpi("Preço Meli (médio pond.)", fmtMoney(meliPriceWeighted), "ponderado por visits_match"));
+  kpis.appendChild(mkKpi("Preço Shopee (médio pond.)", fmtMoney(shopeePriceWeighted), "ponderado por visits_match"));
+  kpis.appendChild(mkKpi("Gap preço Meli vs Shopee", priceGap!=null ? (priceGap>0?"+":"") + (priceGap*100).toLocaleString("pt-BR",{minimumFractionDigits:1, maximumFractionDigits:1}) + "%" : "—", priceGap!=null && priceGap>0 ? "Meli mais caro" : (priceGap!=null ? "Meli mais barato" : "—"), priceGap!=null ? (priceGap<=0?"bpc-good":priceGap<0.05?"bpc-warn":"bpc-bad") : ""));
+
+  // Chart evolutivo
+  const labels = it.weekly.map(w=>w.week);
+  const bpcData = it.weekly.map(w=>w.bpc*100);
+  const meliPriceData = it.weekly.map(w=>w.meli_price);
+  const shopeePriceData = it.weekly.map(w=>w.shopee_price);
+
+  if (chart) chart.destroy();
+  const ctx = document.getElementById("chartEvol").getContext("2d");
+  chart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        { label: "BPC (%)", data: bpcData, yAxisID: "yBpc",
+          borderColor: "#3483fa", backgroundColor: "rgba(52,131,250,0.15)", fill: true, tension: 0.25, borderWidth: 3, pointRadius: 4 },
+        { label: "Preço Meli (R$)", data: meliPriceData, yAxisID: "yPrice",
+          borderColor: "#1e2a3a", borderDash:[6,3], tension: 0.2, borderWidth: 2, pointRadius: 2, fill:false },
+        { label: "Preço Shopee (R$)", data: shopeePriceData, yAxisID: "yPrice",
+          borderColor: "#ee4d2d", borderDash:[6,3], tension: 0.2, borderWidth: 2, pointRadius: 2, fill:false }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: { position: "top", labels: { boxWidth: 14, font: { size: 12 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const v = ctx.parsed.y;
+              if (ctx.dataset.yAxisID === "yBpc") return `${ctx.dataset.label}: ${v.toFixed(1)}%`;
+              return `${ctx.dataset.label}: R$ ${v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { title: { display: true, text: "Semana (segunda)" }, grid: { display: false } },
+        yBpc: { position: "left", min: 0, max: 100, title: { display: true, text: "BPC (%)" },
+          ticks: { callback: v => v + "%" } },
+        yPrice: { position: "right", title: { display: true, text: "Preço médio pond. (R$)" },
+          grid: { drawOnChartArea: false }, ticks: { callback: v => "R$ " + v.toLocaleString("pt-BR") } }
+      }
+    }
+  });
+
+  // Tabela de sellers
+  const tbody = document.getElementById("sellersTbody");
+  tbody.innerHTML = "";
+  const totalSellerMatch = it.sellers.reduce((s,x)=>s+x.v_match,0);
+  it.sellers.forEach(s => {
+    const tr = document.createElement("tr");
+    const sob = totalSellerMatch>0 ? s.v_match/totalSellerMatch : 0;
+    [
+      s.name, fmtBR(s.v_match), fmtBR(s.v_fav), fmtBR(s.v_exp), null, fmtPct(sob)
+    ].forEach((val, i) => {
+      const td = document.createElement("td");
+      if (i>=1 && i!==4) td.className = "num";
+      if (i===4) {
+        td.className = "num";
+        const pill = document.createElement("span");
+        pill.className = "bpc-pill "+bpcClass(s.bpc);
+        pill.textContent = fmtPct(s.bpc);
+        td.appendChild(pill);
+      } else {
+        td.textContent = val;
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+sel.addEventListener("change", e => render(e.target.value));
+render(sel.value);
+</script>
+
+</body>
+</html>

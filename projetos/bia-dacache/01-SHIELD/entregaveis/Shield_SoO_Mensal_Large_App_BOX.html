@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Shield · SoO por competidor · Large Appliances · BOX · Jan-Jun 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --navy: #1e2a3a;
+    --bg: #f4f6fa;
+    --card: #ffffff;
+    --text: #1e2a3a;
+    --muted: #7b8a9c;
+    --border: #e2e8f0;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text); margin: 0; padding: 24px;
+  }
+  .header { margin-bottom: 20px; }
+  .header h1 { margin: 0 0 4px 0; font-size: 22px; }
+  .header .sub { color: var(--muted); font-size: 13px; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 24px; margin-bottom: 16px;
+  }
+  .card h3 { margin: 0 0 12px 0; font-size: 15px; }
+  .chart-wrap { position: relative; height: 460px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; padding: 10px 12px; background: #f9fafc; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .footer { margin-top: 16px; font-size: 12px; color: var(--muted); }
+  .legend-note { font-size: 12px; color: var(--muted); margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>SoO por competidor · Large Appliances · BOX_ALL_ABC</h1>
+  <div class="sub">Site MLB · MELI_ID_TYPE=PRODUCT · sem filtros · Share of Opportunity em pp · Jan–Jun 2026 MTD</div>
+</div>
+
+<div class="card">
+  <h3>Evolução mensal da oportunidade por competidor</h3>
+  <div class="chart-wrap"><canvas id="chart"></canvas></div>
+  <div class="legend-note">SoO = visits_expensive (quando o competidor é winner) ÷ visits_match total da D1. Soma das 5 linhas em cada mês = Opportunity total = 1 − BPC.</div>
+</div>
+
+<div class="card">
+  <h3>Tabela de valores (pp)</h3>
+  <table id="tbl"></table>
+</div>
+
+<div class="footer">
+  Fonte: meli-bi-data.WHOWNER.BT_COM_FAVORABILITY · Gerado em 22/06/2026
+</div>
+
+<script>
+const data = [
+  {mes:"Jan'26", Shopee:7.62, Amazon:29.78, Magalu:11.41, CasasBahia:9.65, Others:6.49, opp_total:65.00},
+  {mes:"Fev'26", Shopee:7.92, Amazon:30.26, Magalu:11.42, CasasBahia:7.71, Others:6.05, opp_total:63.40},
+  {mes:"Mar'26", Shopee:3.10, Amazon:36.31, Magalu:9.42, CasasBahia:6.91, Others:5.58, opp_total:61.32},
+  {mes:"Abr'26", Shopee:3.91, Amazon:33.95, Magalu:14.74, CasasBahia:4.47, Others:5.62, opp_total:62.69},
+  {mes:"Mai'26", Shopee:5.30, Amazon:31.77, Magalu:14.15, CasasBahia:4.51, Others:4.86, opp_total:60.59},
+  {mes:"Jun'26 MTD", Shopee:5.28, Amazon:31.97, Magalu:11.43, CasasBahia:5.18, Others:4.58, opp_total:58.74}
+];
+
+const colors = {
+  Shopee: "#EE4D2D",      // Shopee orange
+  Amazon: "#FF9900",      // Amazon orange
+  Magalu: "#0086FF",      // Magalu blue
+  CasasBahia: "#A22B7E",  // CB purple
+  Others: "#7B8A9C"       // muted gray
+};
+
+const ctx = document.getElementById("chart").getContext("2d");
+new Chart(ctx, {
+  type: "line",
+  data: {
+    labels: data.map(d => d.mes),
+    datasets: [
+      {label: "Amazon",     data: data.map(d => d.Amazon),     borderColor: colors.Amazon,     backgroundColor: colors.Amazon+"20", tension: 0.25, borderWidth: 3, pointRadius: 5},
+      {label: "Magalu",     data: data.map(d => d.Magalu),     borderColor: colors.Magalu,     backgroundColor: colors.Magalu+"20", tension: 0.25, borderWidth: 3, pointRadius: 5},
+      {label: "Shopee",     data: data.map(d => d.Shopee),     borderColor: colors.Shopee,     backgroundColor: colors.Shopee+"20", tension: 0.25, borderWidth: 3, pointRadius: 5},
+      {label: "Casas Bahia",data: data.map(d => d.CasasBahia), borderColor: colors.CasasBahia, backgroundColor: colors.CasasBahia+"20", tension: 0.25, borderWidth: 3, pointRadius: 5},
+      {label: "Others",     data: data.map(d => d.Others),     borderColor: colors.Others,     backgroundColor: colors.Others+"20", tension: 0.25, borderWidth: 3, pointRadius: 5, borderDash:[6,3]}
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    interaction: {mode: "index", intersect: false},
+    plugins: {
+      legend: {position: "top", labels: {boxWidth: 14, font: {size: 13}}},
+      tooltip: {
+        callbacks: {
+          label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y.toFixed(2)}pp`
+        }
+      }
+    },
+    scales: {
+      x: {title: {display: true, text: "Mês"}, grid: {display: false}},
+      y: {
+        title: {display: true, text: "Share of Opportunity (pp)"},
+        ticks: {callback: v => v + "pp"},
+        beginAtZero: true
+      }
+    }
+  }
+});
+
+const tbl = document.getElementById("tbl");
+const competidores = ["Shopee","Amazon","Magalu","CasasBahia","Others"];
+let thead = "<thead><tr><th>Mês</th>";
+competidores.forEach(c => thead += `<th class="num">${c}</th>`);
+thead += `<th class="num">Opp Total</th></tr></thead>`;
+tbl.innerHTML = thead;
+
+const tbody = document.createElement("tbody");
+data.forEach(row => {
+  const tr = document.createElement("tr");
+  let html = `<td><b>${row.mes}</b></td>`;
+  competidores.forEach(c => html += `<td class="num">${row[c].toFixed(2)}pp</td>`);
+  html += `<td class="num"><b>${row.opp_total.toFixed(2)}%</b></td>`;
+  tr.innerHTML = html;
+  tbody.appendChild(tr);
+});
+tbl.appendChild(tbody);
+</script>
+
+</body>
+</html>

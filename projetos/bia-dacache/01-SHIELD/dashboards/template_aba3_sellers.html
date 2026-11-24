@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Migração de faturamento — grupos do BC</title>
+<style>
+ :root{--shp:#EE4D2D;--meli:#FFE600;--ink:#2d2d2d;--bg:#f6f6f4;--card:#fff;--bd:#e3e3df}
+ *{box-sizing:border-box}
+ body{margin:0;font-family:'Proxima Nova',system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+ header{background:var(--meli);padding:14px 20px;border-bottom:3px solid #111}
+ header h1{font-size:18px;margin:0;font-weight:800}
+ header .s{font-size:11.5px;color:#5a5a2e;margin-top:3px}
+ .wrap{padding:16px 20px;max-width:1520px;margin:0 auto}
+ .card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;margin-bottom:13px}
+ .card h3{font-size:13.5px;margin:0 0 6px 0}
+ .hint{font-size:11.5px;color:#777;line-height:1.6}
+ .chips{display:flex;gap:6px;flex-wrap:wrap}
+ .chip{font-size:12px;padding:5px 12px;border:1px solid var(--bd);border-radius:999px;cursor:pointer;background:#fafafa;user-select:none}
+ .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+ .kpis{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:13px}
+ .kpi{flex:1;min-width:150px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:11px 13px}
+ .kpi.al{background:#fdecea;border:2px solid #c0392b}
+ tr.clic{cursor:pointer}
+ tr.clic:hover td{background:#f4f4f0}
+ tr.selr td{background:#fffbe6!important;box-shadow:inset 3px 0 0 #FFE600}
+ .kpi.ok{background:#eaf7ef;border:2px solid #1f9d55}
+ .kpi .l{font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.3px;line-height:1.3}
+ .kpi .v{font-size:22px;font-weight:800;margin-top:2px}
+ .kpi .p{font-size:10.5px;color:#777;margin-top:1px}
+ .box{position:relative;height:370px}
+ table{width:100%;border-collapse:collapse;font-size:11.5px}
+ th,td{border:1px solid var(--bd);padding:4px 7px;text-align:right;white-space:nowrap}
+ th:first-child,td:first-child{text-align:left;font-weight:700;position:sticky;left:0;background:var(--card);min-width:200px;z-index:2}
+ thead th{background:#fafafa}
+ .nn{color:#c0392b;font-weight:700} .pp{color:#178a3f;font-weight:700}
+ .m{font-size:11.5px;line-height:1.8;color:#555} .m b{color:var(--ink)}
+ .lg{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;margin-top:8px}
+ .lg i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+ .tag{font-size:10px;font-weight:800;padding:2px 7px;border-radius:4px;color:#fff}
+ .atk{background:#c0392b} .prt{background:#1f9d55}
+</style>
+</head>
+<body>
+<header><h1>Migração de faturamento — grupos econômicos do BC</h1>
+<div class="s">MELI: DM Eficiência, Carteira Assessorada (<code>3P - VERTICALES</code>) · Shopee: Yipit, por loja · R$ Milhões · MELI até jul/26, Shopee até jun/26</div></header>
+<div class="wrap">
+
+<div class="card"><h3>1. Categoria (D1)</h3><div class="chips" id="cD"></div>
+ <div class="hint" id="cobInfo" style="margin-top:8px"></div></div>
+<div id="alerta"></div>
+<div class="card"><h3>2. Grupo econômico — <span style="font-weight:400;color:#777">seleção múltipla</span></h3><div class="chips" id="cG"></div>
+ <div class="hint" id="gInfo" style="margin-top:8px"></div></div>
+<div class="kpis" id="kp"></div>
+
+<div class="card">
+ <h3>Onde o faturamento está sendo feito, mês a mês</h3>
+ <div class="box"><canvas id="cv"></canvas></div>
+ <div class="lg">
+  <span><i style="background:#FFE600;border:1px solid #c9b800"></i>faturado no MELI</span>
+  <span><i style="background:#EE4D2D"></i>faturado na Shopee</span>
+  <span>—— Shopee ÷ MELI (%)</span><span>- - - 100% = igual nos dois</span>
+ </div>
+</div>
+
+<div class="card"><h3>Ranking dos grupos na categoria — onde atacar e onde proteger</h3>
+ <div class="hint" style="margin-bottom:8px"><b>Clique em qualquer linha para incluir ou tirar o grupo da seleção acima.</b><br>
+ Classificação <b>derivada do dado</b>, não arbitrada: <span class="tag atk">ATACAR</span> quando o grupo fatura mais na Shopee que no MELI · <span class="tag prt">PROTEGER</span> quando fatura mais aqui. Base: <b>mai+jun/26 somados</b>, R$ Milhões.<br>
+ <b>Última coluna:</b> se o grupo passasse a vender com a gente 30% do que hoje vende na Shopee, é isso que entraria de faturamento <b>por mês</b>. Não é meta — é dimensionamento.</div>
+ <table id="tr"></table>
+</div>
+
+<div class="card"><h3 id="tbTit">Quadro mensal</h3>
+ <div style="overflow-x:auto"><table id="tb"></table></div></div>
+
+<div class="card">
+ <h3>Quanto vale trazer esse faturamento de volta</h3>
+ <div class="hint" style="margin-bottom:9px">Um real recuperado da Shopee move os <b>dois lados</b> do ratio (tira dela e soma em nós), então vale mais que um real de venda nova. Sendo <code>r</code> o ratio da categoria: eficiência = <code>(1+r)/r = 1 + MELI/Shopee</code>.</div>
+ <table id="ts"></table>
+ <div class="hint" id="leg" style="margin-top:9px"></div>
+ <div class="hint" style="margin-top:7px;border-left:3px solid #d98a00;padding-left:9px"><b>Por que 4 meses e não 6.</b> A base da Shopee fecha em <b>jun/26</b>, então o segundo semestre inteiro (jul-dez/26) aparece como pendente. Mas <b>julho e agosto já passaram</b> — são meses que ainda não auditamos, não meses em que podemos agir. <b>Os dias acionáveis são set, out, nov e dez/26.</b> O cenário é dimensionado nesses quatro meses.</div>
+</div>
+
+<div class="card"><h3>Notas metodológicas</h3>
+ <div class="m">
+  <b>Duas fontes, dois papéis.</b> <b>Yipit</b> (<code>DM_YIPIT_SHOPEE_ITEMS</code>) para <b>composição por loja</b>; <b>Planning</b> (<code>DM_MARKET_ASP</code>) para <b>nível de mercado</b>. Metodologias diferentes, <b>não reconciliam</b> — não somar nem dividir entre as duas.<br>
+  <b>Defasagem:</b> Yipit fecha em <b>jun/26</b>, DM Eficiência já tem <b>jul/26</b> — por isso julho aparece só no lado MELI.<br>
+  <b>Consolidação por grupo econômico:</b> cada grupo soma vários <code>cust_id</code> no MELI (Electrolux tem loja oficial e Full; Shop EV = grupo Kill E-Commerce inteiro, 3 custs) e várias lojas na Shopee (Philco + Britânia; Webcontinental ×3). De-para confirmado pela Beatriz.<br>
+  <b>Base MELI:</b> <code>SUM(GMV_LC) WHERE NMV_FLG AND GMV_FLG</code>, por <code>ORD_CLOSED_DT</code>, <code>SEGMENTO='3P - VERTICALES'</code>, todas as faixas de ASP.<br>
+  <b>O que NÃO está provado:</b> causalidade. A correlação temporal entre entrada na Shopee e estagnação aqui é forte, mas parte do crescimento lá pode ser demanda nova. Por isso a recuperação entra como <b>cenário</b> (20/30/50%), não como previsão.
+ </div>
+</div>
+</div>
+<script>
+const J=__DATA__;
+const ND={LARGE:'Large Appliances',SMALL:'Small Appliances',H_C:'Heating & Cooling',
+          TVS:'Televisions & Streaming',AUDIO:'Audio & General Electronics'};
+// cobertura = quanto os grupos mapeados representam do que a Shopee fatura naquela D1 (mai+jun/26)
+const COB={LARGE:{grp:236.0,d1:375.7,lojas:702},SMALL:{grp:90.3,d1:590.9,lojas:2210},
+           H_C:{grp:151.4,d1:303.4,lojas:1094},TVS:{grp:201.8,d1:257.9,lojas:303},
+           AUDIO:{grp:32.5,d1:142.2,lojas:838}};
+// D1 CHEIA, janela acionavel set-dez/26 (projecao combo). H_C nao tem projecao: usa o realizado
+// de Q2'26 so para a eficiencia (que depende do ratio, nao do nivel) e nao mostra ratio.
+const PROJ={LARGE:{m:2843,s:1264,proj:true},SMALL:{m:2017,s:920,proj:true},
+  H_C:{m:629,s:303,proj:false,nota:'banda 45-70% — ver aba 2'},
+  TVS:{m:1356,s:296,proj:false,nota:'sem projeção · ratio realizado Q2\'26 = 21,8%'},
+  AUDIO:{m:827,s:196,proj:false,nota:'sem projeção · ratio realizado Q2\'26 = 23,7%'}};
+const M=[]; for(let y=2025;y<=2026;y++) for(let k=1;k<=12;k++){const t=y+'-'+String(k).padStart(2,'0'); if(t>='2025-07'&&t<='2026-07') M.push(t)}
+const MN=['','jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const lb=x=>MN[+x.slice(5)]+'/'+x.slice(2,4);
+const DB={};
+function put(src,d,g,mes,v){DB[d]=DB[d]||{};DB[d][g]=DB[d][g]||{meli:{},shop:{}};DB[d][g][src][mes]=v}
+J.meli.forEach(([d,g,m,v])=>put('meli',d,g,m,v));
+J.shopee.forEach(([d,g,m,v])=>put('shop',d,g,m,v));
+const D1S=['LARGE','SMALL','H_C','TVS','AUDIO'];
+let selD='LARGE';
+// selG = conjunto de grupos marcados. Vazio = TODOS.
+let selG=new Set();
+const ehTodos=()=>selG.size===0;
+const listaSel=d=>ehTodos()?gruposDe(d):[...selG];
+const rotuloSel=()=>ehTodos()?'todos os grupos':(selG.size===1?[...selG][0]:`os ${selG.size} grupos marcados`);
+const f1=v=>(v==null)?'–':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
+const f0=v=>(v==null)?'–':Math.round(v).toLocaleString('pt-BR');
+const p0=v=>(v==null||!isFinite(v))?'–':Math.round(v)+'%';
+function gruposDe(d){const g=Object.keys(DB[d]||{});
+ return g.filter(x=>{const o=DB[d][x];
+  const t=Object.values(o.meli).reduce((a,b)=>a+b,0)+Object.values(o.shop).reduce((a,b)=>a+b,0);return t>5}).sort()}
+function serie(d,src){
+ const lista=listaSel(d);
+ return M.map(m=>{
+  if(src==='shop'&&m==='2026-07') return null;            // Yipit fecha em jun/26
+  let s=0,has=false;
+  lista.forEach(x=>{const o=DB[d][x]; if(!o) return; const v=o[src][m]; if(v!=null){s+=v;has=true}});
+  return has?s:0})}
+function render(){
+ const cb=COB[selD], cbPct=cb.grp/cb.d1*100;
+ document.getElementById('cobInfo').innerHTML=`Os grupos desta aba são <b>${f1(cbPct)}%</b> de tudo que a Shopee fatura em ${ND[selD]} — <b>${f1(cb.grp)} de ${f1(cb.d1)} Mi</b> em mai+jun/26. A categoria tem <b>${cb.lojas.toLocaleString('pt-BR')} lojas</b> na Shopee.`;
+ document.getElementById('alerta').innerHTML = selD!=='AUDIO' ? '' : `<div class="kpi al" style="margin-bottom:13px;padding:13px 16px">
+  <div style="font-size:13px;font-weight:800;color:#7a1f14;margin-bottom:6px">Áudio: a alavanca aqui provavelmente é <u>hunting</u>, não acordo com loja assessorada</div>
+  <div style="font-size:12px;color:#7a1f14;line-height:1.75">
+  Em <b>TVs</b> as 8 lojas mapeadas cobrem <b>78,2%</b> do que a Shopee fatura. Em <b>Áudio</b>, as mesmas 8 cobrem só <b>22,8%</b> — ou seja, <b>77% do faturamento dela vem de sellers que não temos na carteira assessorada</b>.<br>
+  A categoria tem <b>838 lojas</b> vendendo na Shopee, o maior player tem <b>11,9%</b> e o top 20 soma <b>59,8%</b>. Não existe o punhado de grupos grandes que sustenta o caso de Large e TVs.<br>
+  <b>Consequência prática:</b> negociar com quem já é nosso resolve pouco aqui. O caminho é <b>trazer seller novo</b> — e essa é uma alavanca de <b>hunting</b>, com outro time, outro custo e outro prazo. <b>A tese do BC de HE não se transfere para Áudio.</b>
+  </div></div>`;
+ const me=serie(selD,'meli'), sp=serie(selD,'shop');
+ const rel=M.map((m,i)=>(sp[i]!=null&&me[i])?sp[i]/me[i]*100:null);
+ const i0=0,iF=M.indexOf('2026-06');
+ const tot0=(me[i0]||0)+(sp[i0]||0), totF=(me[iF]||0)+(sp[iF]||0);
+ const dS=(sp[iF]||0)-(sp[i0]||0), dT=totF-tot0;
+ const dM=(me[iF]||0)-(me[i0]||0);
+ const leituraCresc = dT<=0 ? 'o grupo não cresceu no período'
+   : `o grupo cresceu <b>${f0(dT)} Mi/mês</b> — <b>${f0(dS)} Mi</b> disso foi na Shopee e <b>${f0(dM)} Mi</b> com a gente`;
+ document.getElementById('kp').innerHTML=`
+  <div class="kpi"><div class="l">Quanto ele fatura com a gente<br>R$ Mi por mês</div><div class="v">${f0(me[i0])} → ${f0(me[iF])}</div><div class="p">jul/25 → jun/26 · ${me[i0]?'<b>'+p0((me[iF]/me[i0]-1)*100)+'</b> em 12 meses':'–'}</div></div>
+  <div class="kpi al"><div class="l">Quanto ele fatura na Shopee<br>R$ Mi por mês</div><div class="v">${f0(sp[i0])} → ${f0(sp[iF])}</div><div class="p">jul/25 → jun/26 · ${sp[i0]>0?'<b>'+p0((sp[iF]/sp[i0]-1)*100)+'</b> em 12 meses':'<b>entrou do zero</b>'}</div></div>
+  <div class="kpi"><div class="l">Faturamento total do grupo<br>MELI + Shopee · R$ Mi por mês</div><div class="v">${f0(tot0)} → ${f0(totF)}</div><div class="p">jul/25 → jun/26 · ${tot0?'<b>'+p0((totF/tot0-1)*100)+'</b> em 12 meses':'–'}</div></div>
+  <div class="kpi ${(sp[iF]/totF)>0.5?'al':'ok'}"><div class="l">De cada R$ 100 que ele vende,<br>quanto sai pela Shopee</div><div class="v">${p0(tot0?sp[i0]/tot0*100:0)} → ${p0(sp[iF]/totF*100)}</div><div class="p">jul/25 → jun/26 · ${(sp[iF]/totF)>0.5?'<b>já vende mais lá do que aqui</b>':'ainda vende mais aqui'}</div></div>
+  <div class="kpi ${(dT>0&&dS/dT>0.7)?'al':''}"><div class="l">Do crescimento dele,<br>quanto foi para a Shopee</div><div class="v">${dT>0?p0(dS/dT*100):'–'}</div><div class="p">${leituraCresc}</div></div>`;
+ if(window.ch)window.ch.destroy();
+ window.ch=new Chart(document.getElementById('cv'),{data:{labels:M.map(lb),datasets:[
+  {type:'bar',label:'MELI',data:me,yAxisID:'y',backgroundColor:'#FFE600',borderColor:'#c9b800',borderWidth:1,order:3},
+  {type:'bar',label:'Shopee',data:sp,yAxisID:'y',backgroundColor:'#EE4D2D',order:3},
+  {type:'line',label:'Shopee ÷ MELI',data:rel,yAxisID:'y1',borderColor:'#111',borderWidth:2.4,tension:.2,order:1,pointRadius:2.5,spanGaps:false},
+  {type:'line',label:'100%',data:M.map(()=>100),yAxisID:'y1',borderColor:'#999',borderDash:[3,3],borderWidth:1.3,pointRadius:0,order:1}
+ ]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+  plugins:{legend:{display:false}},scales:{y:{title:{display:true,text:'R$ Milhões'},beginAtZero:true},
+   y1:{position:'right',title:{display:true,text:'Shopee ÷ MELI (%)'},grid:{drawOnChartArea:false},ticks:{callback:v=>v+'%'},beginAtZero:true}}}});
+
+ // ranking
+ const rk=gruposDe(selD).map(g=>{
+   const mm=(DB[selD][g].meli['2026-05']||0)+(DB[selD][g].meli['2026-06']||0);
+   const ss=(DB[selD][g].shop['2026-05']||0)+(DB[selD][g].shop['2026-06']||0);
+   return {g,mm,ss,r:mm>0?ss/mm*100:null}}).sort((a,b)=>b.ss-a.ss);
+ let h='<thead><tr><th>Grupo</th><th>Fatura com a gente<br>mai+jun/26 (R$ Mi)</th><th>Fatura na Shopee<br>mai+jun/26 (R$ Mi)</th><th>Shopee ÷ MELI</th><th>Prioridade</th><th>Se trouxéssemos 30% do que<br>ele vende lá (R$ Mi/mês)</th></tr></thead><tbody>';
+ rk.forEach(x=>{const atk=x.r!=null&&x.r>100;
+  const marc=selG.has(x.g);
+  h+=`<tr class="clic${marc?' selr':''}" data-g="${x.g}"><td>${marc?'✓ ':''}${x.g}</td><td>${f1(x.mm)}</td><td class="nn">${f1(x.ss)}</td><td class="${atk?'nn':'pp'}">${p0(x.r)}</td>`+
+     `<td><span class="tag ${atk?'atk':'prt'}">${atk?'ATACAR':'PROTEGER'}</span></td><td><b>${f1(x.ss*0.3/2)}</b></td></tr>`});
+ const tM=rk.reduce((a,b)=>a+b.mm,0), tS=rk.reduce((a,b)=>a+b.ss,0);
+ h+=`</tbody><tfoot><tr><td>TOTAL dos grupos</td><td>${f1(tM)}</td><td class="nn">${f1(tS)}</td><td class="nn">${p0(tS/tM*100)}</td><td></td><td>${f1(tS*0.3/2)}</td></tr></tfoot>`;
+ document.getElementById('tr').innerHTML=h;
+ document.querySelectorAll('#tr tr.clic').forEach(row=>{
+  row.onclick=()=>{const g=row.getAttribute('data-g'); if(selG.has(g)){selG.delete(g)}else{selG.add(g)} draw()}});
+ document.getElementById('tbTit').innerHTML = ehTodos()
+  ? 'Quadro mensal — <span style="font-weight:400;color:#777">todos os grupos somados</span>'
+  : `Quadro mensal — <span style="font-weight:400;color:#777">${rotuloSel()}</span>`;
+
+ let t='<thead><tr><th>Métrica</th>'+M.map(x=>`<th>${lb(x)}</th>`).join('')+'</tr></thead><tbody>';
+ t+='<tr><td>MELI</td>'+me.map(v=>`<td>${f1(v)}</td>`).join('')+'</tr>';
+ t+='<tr><td>Shopee</td>'+sp.map(v=>`<td class="nn">${f1(v)}</td>`).join('')+'</tr>';
+ t+='<tr><td>Shopee ÷ MELI</td>'+rel.map(v=>`<td class="${v>100?'nn':''}">${p0(v)}</td>`).join('')+'</tr>';
+ t+='</tbody>';document.getElementById('tb').innerHTML=t;
+
+ const P=PROJ[selD], efic=1+P.m/P.s, baseS=sp[iF]||0;
+ let u='<thead><tr><th>Se ele passasse a vender com a gente…</th><th>o que entra<br>por mês (R$ Mi)</th><th>nos 4 meses acionáveis<br>set-dez/26 (R$ Mi)</th><th>equivale a quanto<br>de venda nova (R$ Mi)</th><th>ratio da categoria<br>jul-dez/26</th></tr></thead><tbody>';
+ [0.2,0.3,0.5].forEach(p=>{const mm=baseS*p, jan=mm*4, eq=jan*efic;
+   const rB=P.s/P.m*100, rN=(P.s-jan)/(P.m+jan)*100;
+   const colR = P.proj ? `${f1(rB)} → <b class="pp">${f1(rN)}</b> (−${f1(rB-rN)} pp)` : `<i>${P.nota}</i>`;
+   u+=`<tr><td><b>${Math.round(p*100)}%</b> do que ele vende hoje na Shopee</td><td><b>${f1(mm)}</b></td><td>${f0(jan)}</td><td><b>${f0(eq)}</b> (×${efic.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})})</td><td>${colR}</td></tr>`});
+ u+='</tbody>';document.getElementById('ts').innerHTML=u;
+ document.getElementById('leg').innerHTML=`<b>Como ler a primeira linha:</b> hoje <b>${rotuloSel()}</b> ${selG.size===1?'fatura':'faturam'} <b>${f1(baseS)} Mi/mês</b> na Shopee (jun/26). Se 20% disso passasse a ser vendido com a gente, entrariam <b>${f1(baseS*0.2)} Mi por mês</b> — <b>${f0(baseS*0.2*4)} Mi</b> nos quatro meses acionáveis.`;
+}
+function chips(id,items,cur,set){const c=document.getElementById(id);c.innerHTML='';
+ items.forEach(k=>{const s=document.createElement('span');s.className='chip'+(k===cur?' on':'');s.textContent=(ND[k]||k);
+  s.onclick=()=>{set(k);draw()};c.appendChild(s)})}
+// chips de grupo: selecao MULTIPLA. "Todos" = conjunto vazio.
+function chipsG(){
+ const c=document.getElementById('cG'); c.innerHTML='';
+ const gs=gruposDe(selD);
+ const todos=document.createElement('span');
+ todos.className='chip'+(ehTodos()?' on':'');
+ todos.textContent='Todos ('+gs.length+')';
+ todos.onclick=()=>{selG.clear();draw()};
+ c.appendChild(todos);
+ gs.forEach(k=>{
+  const s=document.createElement('span');
+  const marcado=selG.has(k);
+  s.className='chip'+(marcado?' on':'');
+  s.textContent=(marcado?'✓ ':'')+k;
+  s.onclick=()=>{ if(marcado){selG.delete(k)} else {selG.add(k)} draw() };
+  c.appendChild(s)});
+ if(!ehTodos()){
+  const limpar=document.createElement('span');
+  limpar.className='chip'; limpar.style.borderStyle='dashed'; limpar.style.color='#777';
+  limpar.textContent='limpar seleção';
+  limpar.onclick=()=>{selG.clear();draw()};
+  c.appendChild(limpar)}
+ document.getElementById('gInfo').innerHTML = ehTodos()
+  ? `Mostrando <b>todos os ${gs.length} grupos</b> da categoria somados. Clique em um ou mais grupos para somar só eles — <b>a seleção é múltipla</b>.`
+  : `Somando <b>${selG.size} de ${gs.length}</b> grupos: <b>${[...selG].join(' · ')}</b>. Clique de novo em um grupo para desmarcar.`;
+}
+function draw(){
+ chips('cD',D1S,selD,v=>{selD=v;selG.clear()});
+ // ao trocar de D1, descarta grupos que nao existem na nova categoria
+ const validos=new Set(gruposDe(selD));
+ [...selG].forEach(k=>{ if(!validos.has(k)) selG.delete(k) });
+ chipsG();
+ render();
+}
+(function(){const s=document.createElement('script');s.src='/d/_libs/chart.min.js';s.onload=draw;
+ s.onerror=()=>{const c=document.createElement('script');c.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js';c.onload=draw;document.head.appendChild(c)};
+ document.head.appendChild(s)})();
+</script>
+</body>
+</html>

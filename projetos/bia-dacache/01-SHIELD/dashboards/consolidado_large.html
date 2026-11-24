@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BC Shopee — Large Appliances consolidado</title>
+<style>
+ :root{--shp:#EE4D2D;--meli:#FFE600;--bau:#4a90d9;--bc:#1f9d55;--sd:#9b59b6;--ink:#2d2d2d;--bg:#f6f6f4;--card:#fff;--bd:#e3e3df}
+ *{box-sizing:border-box}
+ body{margin:0;font-family:'Proxima Nova',system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+ header{background:var(--meli);padding:14px 20px;border-bottom:3px solid #111}
+ header h1{font-size:18px;margin:0;font-weight:800}
+ header .s{font-size:11.5px;color:#5a5a2e;margin-top:3px}
+ .wrap{padding:16px 20px;max-width:1560px;margin:0 auto}
+ .card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;margin-bottom:13px}
+ .card h3{font-size:13.5px;margin:0 0 6px 0}
+ .hint{font-size:11.5px;color:#777;line-height:1.6}
+ .kpis{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:13px}
+ .kpi{flex:1;min-width:142px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:10px 12px}
+ .kpi .l{font-size:10px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.3px;line-height:1.3}
+ .kpi .v{font-size:21px;font-weight:800;margin-top:2px}
+ .kpi .p{font-size:10.5px;color:#777;margin-top:1px}
+ .box{position:relative;height:420px}
+ table{width:100%;border-collapse:collapse;font-size:11.5px}
+ th,td{border:1px solid var(--bd);padding:4px 6px;text-align:right;white-space:nowrap}
+ th:first-child,td:first-child{text-align:left;font-weight:700;position:sticky;left:0;background:var(--card);min-width:250px;z-index:2;box-shadow:1px 0 0 var(--bd)}
+ thead th{background:#fafafa} thead th:first-child{background:#fafafa}
+ .fr{border-right:3px solid #555 !important}
+ tr.sec td{background:#f2f2ef;font-weight:800;font-size:11px}
+ tr.l1 td{color:#2b6cb0} tr.l2 td{color:#157347} tr.l3 td{color:#7d3c98}
+ .pp{color:#178a3f} .nn{color:#c0392b}
+ .m{font-size:11.5px;line-height:1.85;color:#555}
+ .m b{color:var(--ink)}
+ .m code{background:#f3f3f0;padding:1px 5px;border-radius:3px;font-size:11px}
+ .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+ @media(max-width:900px){.grid2{grid-template-columns:1fr}}
+ .lg{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;margin-top:8px}
+ .lg i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+</style>
+</head>
+<body>
+<header><h1>Plano de Combate Shopee · Large Appliances — visão consolidada</h1>
+<div class="s">Faixas de ASP prioritárias (200-500 · 500-1500 · 1500-3000 · +3000 = 98,7% do faturamento da D1) · R$ Milhões · dado real até jun/2026, projeção jul-dez/2026</div></header>
+<div class="wrap">
+
+<div class="kpis" id="kp"></div>
+
+<div class="card">
+ <h3>Evolutivo: realizado, projetado e as três camadas do que falta entregar</h3>
+ <div class="box"><canvas id="cv"></canvas></div>
+ <div class="lg">
+  <span><i style="background:#EE4D2D"></i>Shopee</span>
+  <span><i style="background:#FFE600;border:1px solid #c9b800"></i>MELI — tendência (baseline)</span>
+  <span><i style="background:#4a90d9"></i>+ BAU mais forte</span>
+  <span><i style="background:#1f9d55"></i>+ BC (6 grupos cotados)</span>
+  <span><i style="background:#9b59b6"></i>+ SD / fatia móvel</span>
+  <span>—— ratio realizado &nbsp;· - - - ratio sem ação &nbsp;· —— ratio com as 3 camadas</span>
+ </div>
+</div>
+
+<div class="card">
+ <h3>Quadro de KPIs — histórico e projetado</h3>
+ <div class="hint" style="margin-bottom:8px">A coluna de jun/26 tem borda grossa: à esquerda é realizado, à direita é projeção. <b>Compare as linhas de crescimento projetado com as realizadas</b> — é isso que mostra o quanto é duro segurar o avanço.</div>
+ <div style="overflow-x:auto"><table id="tb"></table></div>
+</div>
+
+<div class="card">
+ <h3>Premissas técnicas da projeção</h3>
+ <div class="grid2">
+  <div class="m">
+   <b>Duas regras de projeção, e usamos a média das duas</b><br><br>
+   <b>Regra 1 — YoY sobre o mês real do ano anterior.</b> Toma o mês realizado 12 meses atrás e aplica o crescimento YoY observado nos <b>últimos 6 meses fechados</b> (jan-jun/26), amortecido a cada mês à frente.<br>
+   <code>F(mês) = real(mês−12) × (1 + YoY × φ^k)</code><br><br>
+   <b>Regra 2 — decomposição multiplicativa.</b> Três componentes:<br>
+   • <b>Índice sazonal</b> por mês-calendário, estimado por decomposição log-linear (MELI: 2023-2026 · Shopee: 2024-2026), normalizado para média 1,00;<br>
+   • <b>Nível dessazonalizado</b> dos <b>últimos 3 meses fechados</b> (abr-mai-jun/26) — o L3M;<br>
+   • <b>Tendência recente</b> = inclinação de log da série dessazonalizada nos mesmos 3 meses, amortecida.<br>
+   <code>F(mês) = nível × Π(1 + g·φ^j) × S(mês)</code><br><br>
+   <b>Amortecimento φ = 0,9</b> (damped trend, Gardner &amp; McKenzie 1985): o crescimento continua, mas desacelera — impede que a projeção explode no horizonte longo.<br><br>
+   <b>Por que a média das duas:</b> a Regra 1 subestimou 11% no backtest e a Regra 2 superestimou 13%; a média ficou com viés de <b>+0,9%</b> (Bates &amp; Granger, 1969 — combinar previsões cancela viés).
+  </div>
+  <div class="m">
+   <b>Validação</b><br>
+   • <b>Julho/26, previsão pré-registrada antes do dado existir:</b> projetamos 633,3 e o DM Eficiência fechou em <b>633,7</b> — erro de <b>0,06%</b>. No total das 3 D1s: 1.225,0 vs 1.223,4 (0,13%).<br>
+   • <b>Backtest</b> (ajuste até dez/25, previsão de jan-jun/26): erro do ratio em Large de <b>10,2%</b> (2,8 pp).<br>
+   • <b>Consistência de perímetro:</b> Large H2'25 pelo DM = 2.855,3 (todas as faixas) vs 2.817 no perímetro-foco = 98,7%. As duas contas fecham.<br><br>
+   <b>Regra de cada camada — todas medidas, nenhuma projetada</b><br>
+   <span style="color:#2b6cb0"><b>BAU mais forte (+380)</b></span> = manter o ritmo YoY atual de cada segmento <b>em vez de desacelerar</b>. É a diferença entre a projeção amortecida (top-down) e a soma dos segmentos crescendo no próprio ritmo (bottom-up).<br><br>
+   <span style="color:#157347"><b>BC (+195 medidos)</b></span> — <b>os 6 grupos cotados entram no BC</b>, porque eles são <b>os sellers mais relevantes da Shopee em Large Appliances</b>. O BC tem por isso <b>dois mecanismos</b>:<br>
+   • <b>Recuperação (quantificada aqui):</b> 3 dos 6 ficaram atrás da carteira e passam a crescer no ritmo dela → <b>+195 Mi</b>.<br>
+   • <b>Substituição (declarada, ainda não quantificada):</b> os 6 vendendo mais aqui tendem a vender menos na Shopee. Isso ataca o <b>numerador</b> do ratio. E é a alavanca mais eficiente: como <code>MELI ÷ Shopee = 4.066 ÷ 1.792 = 2,27</code>, <b>cada R$ 1 que sai da Shopee vale 2,27 reais somados ao MELI</b> em termos de ratio. Falta a base de faturamento deles na Shopee para dimensionar.<br><br>
+   <b>Crescimento próprio de cada grupo — janela mai-jul/2026 vs mai-jul/2025</b> (mesmos 3 meses, ano contra ano):<br>
+   <b>abaixo da carteira →</b> Electrolux <b>−5,0%</b> · Infoar <b>−34,4%</b> · Outlet das Fábricas <b>+5,2%</b><br>
+   <b>acima da carteira →</b> Engage <b>+67,7%</b> · 3 Green <b>+136,5%</b> · Philco/Britânia <b>+210,1%</b><br>
+   Referência: Carteira Assessorada <b>+57,1%</b> na mesma janela. Base de projeção: <b>jul-dez/2025 realizado</b>.<br><br>
+   <span style="color:#7d3c98"><b>SD / fatia móvel (+120)</b></span> = a cauda longa (<code>3P - SELLER DEV</code>), que cresce <b>+16,7%</b> (jul/26 vs jul/25), vai ao ritmo da carteira. <b>É a camada de menor controlabilidade</b> — sellers pequenos, massivos, não assessorados, onde orientamos mas não garantimos execução. Funciona como <b>buffer</b>: se o BC for considerado subdimensionado, traz-se fatia daqui.<br><br>
+   <b>1P não entra como recuperação:</b> cresce <b>+64,4%</b> (jul/26 vs jul/25), acima da carteira — não há atraso a recuperar.<br><br>
+   <b>Consistência das janelas:</b> a carteira cresceu <b>+57,1%</b> na janela de 3 meses e <b>+57,7%</b> em julho isolado. Como as duas praticamente coincidem, comparar SD e 1P (medidos em julho) com a carteira é válido.<br><br>
+   <b>Fragilidades declaradas:</b> o GMV da Shopee é estimativa de painel (usar tendência, não nível absoluto) · a cesta de faixas de ASP não é fixa (item promocionado troca de faixa) — afeta MELI e Shopee, cancela parcialmente no ratio · a base do Planning tem defasagem de ~2 meses.
+  </div>
+ </div>
+</div>
+</div>
+<script>
+const M=['2025-01','2025-02','2025-03','2025-04','2025-05','2025-06','2025-07','2025-08','2025-09','2025-10','2025-11','2025-12','2026-01','2026-02','2026-03','2026-04','2026-05','2026-06','2026-07','2026-08','2026-09','2026-10','2026-11','2026-12'];
+const SHP=[30.33,26.41,31.87,33.64,31.46,47.95,61.07,73.23,91.55,99.25,129.09,113.92,113.70,113.34,123.13,131.44,186.40,178.87,246.7,262.0,303.7,307.6,362.2,310.1];
+const BASE=[280.42,265.66,310.19,309.31,371.62,385.15,408.14,407.45,395.63,424.57,778.25,402.65,447.73,415.82,549.81,513.27,596.16,570.83,633.3,617.0,582.0,608.8,1069.3,555.5];
+const NF=18; // indice do primeiro mes projetado
+const mk=v=>{const a=new Array(24).fill(null);v.forEach((x,i)=>a[18+i]=x);return a};
+const BAUX=mk([55.3,55.2,53.5,57.3,104.5,54.3]);
+const BCX =mk([32.6,29.6,27.6,27.2,58.6,19.8]);
+const SDX =mk([21.2,19.9,17.4,17.5,19.1,25.0]);
+const HOJE=33.1;
+const MN=['','jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const lb=m=>MN[+m.slice(5)]+'/'+m.slice(2,4);
+const isF=i=>i>=NF;
+const f0=v=>(v==null||isNaN(v))?'–':Math.round(v).toLocaleString('pt-BR');
+const p0=v=>(v==null||isNaN(v))?'–':(v>0?'+':'')+Math.round(v)+'%';
+const p1=v=>(v==null||isNaN(v))?'–':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+const TOT=M.map((m,i)=>BASE[i]+(BAUX[i]||0)+(BCX[i]||0)+(SDX[i]||0));
+const mom=a=>a.map((v,i)=>(i>0&&v!=null&&a[i-1])?(v/a[i-1]-1)*100:null);
+const yoy=a=>a.map((v,i)=>(i>=12&&v!=null&&a[i-12])?(v/a[i-12]-1)*100:null);
+const rSemAcao=M.map((m,i)=>SHP[i]/BASE[i]*100);
+const rComCam=M.map((m,i)=>isF(i)?SHP[i]/TOT[i]*100:null);
+
+function sum(a,f,t){let s=0;for(let i=f;i<=t;i++)s+=(a[i]||0);return s}
+const shpP=sum(SHP,18,23), baseP=sum(BASE,18,23), totP=sum(TOT,18,23);
+const bauP=sum(BAUX,18,23), bcP=sum(BCX,18,23), sdP=sum(SDX,18,23);
+const rBase=shpP/baseP*100, rFim=shpP/totP*100, gap=(shpP/(HOJE/100))-totP;
+
+document.getElementById('kp').innerHTML=`
+ <div class="kpi"><div class="l">Ratio hoje</div><div class="v">${p1(HOJE)}</div><div class="p">abr-jun/26, sem calendário</div></div>
+ <div class="kpi"><div class="l">Ratio um ano atrás</div><div class="v">${p1(sum(SHP,6,11)/sum(BASE,6,11)*100)}</div><div class="p">jul-dez/25 realizado</div></div>
+ <div class="kpi"><div class="l">Ratio sem ação</div><div class="v" style="color:#c0392b">${p1(rBase)}</div><div class="p">jul-dez/26 · piora ${(rBase-HOJE).toFixed(1)} pp</div></div>
+ <div class="kpi" style="background:#eaf7ef;border:2px solid #1f9d55"><div class="l">Ratio com as 3 camadas</div><div class="v" style="color:#157347">${p1(rFim)}</div><div class="p">evita <b>${(rBase-rFim).toFixed(1)} pp</b> = ${((rBase-rFim)/(rBase-HOJE)*100).toFixed(0)}% da piora</div></div>
+ <div class="kpi"><div class="l">Faturamento a mais</div><div class="v">${f0(bauP+bcP+sdP)}</div><div class="p">BAU ${f0(bauP)} · BC ${f0(bcP)} · SD ${f0(sdP)}</div></div>
+ <div class="kpi"><div class="l">Gap remanescente</div><div class="v" style="color:#c0392b">${f0(gap)}</div><div class="p">descoberto · risco declarado</div></div>`;
+
+function hp(c){const cc=document.createElement('canvas');cc.width=7;cc.height=7;const x=cc.getContext('2d');
+ x.fillStyle='#fff';x.fillRect(0,0,7,7);x.strokeStyle=c;x.lineWidth=2.4;x.beginPath();x.moveTo(0,7);x.lineTo(7,0);x.stroke();return x.createPattern(cc,'repeat')}
+function build(){
+ const pS=hp('#EE4D2D'),pM=hp('#d9c400'),pA=hp('#4a90d9'),pB=hp('#1f9d55'),pD=hp('#9b59b6');
+ new Chart(document.getElementById('cv'),{data:{labels:M.map(lb),datasets:[
+  {type:'bar',label:'Shopee',data:SHP,stack:'s',yAxisID:'y',order:5,backgroundColor:M.map((m,i)=>isF(i)?pS:'#EE4D2D'),borderColor:'#EE4D2D',borderWidth:M.map((m,i)=>isF(i)?1.4:0)},
+  {type:'bar',label:'MELI tendência',data:BASE,stack:'m',yAxisID:'y',order:5,backgroundColor:M.map((m,i)=>isF(i)?pM:'#FFE600'),borderColor:'#c9b800',borderWidth:1.1},
+  {type:'bar',label:'+ BAU mais forte',data:BAUX,stack:'m',yAxisID:'y',order:5,backgroundColor:pA,borderColor:'#4a90d9',borderWidth:1.3},
+  {type:'bar',label:'+ BC',data:BCX,stack:'m',yAxisID:'y',order:5,backgroundColor:pB,borderColor:'#1f9d55',borderWidth:1.3},
+  {type:'bar',label:'+ SD (fatia móvel)',data:SDX,stack:'m',yAxisID:'y',order:5,backgroundColor:pD,borderColor:'#9b59b6',borderWidth:1.3},
+  {type:'line',label:'ratio realizado',data:rSemAcao.map((v,i)=>isF(i)?null:v),yAxisID:'y1',borderColor:'#111',borderWidth:2.4,tension:.2,order:1,pointRadius:2.3},
+  {type:'line',label:'ratio sem ação',data:rSemAcao.map((v,i)=>(isF(i)||i===NF-1)?v:null),yAxisID:'y1',borderColor:'#111',borderDash:[6,4],borderWidth:2.4,tension:.2,order:1,pointRadius:2.3},
+  {type:'line',label:'ratio com as 3 camadas',data:rComCam.map((v,i)=>(isF(i)||i===NF-1)?(i===NF-1?rSemAcao[i]:v):null),yAxisID:'y1',borderColor:'#1f9d55',borderWidth:2.6,tension:.2,order:1,pointRadius:2.6},
+  {type:'line',label:'ratio de hoje (referência)',data:M.map(()=>HOJE),yAxisID:'y1',borderColor:'#999',borderDash:[2,3],borderWidth:1.4,pointRadius:0,order:1}
+ ]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+  plugins:{legend:{display:false},tooltip:{callbacks:{title:t=>t[0].label+(isF(M.indexOf(M[t[0].dataIndex]))?'':'')}}},
+  scales:{x:{stacked:true,ticks:{maxRotation:60,minRotation:60,font:{size:9.5}}},
+   y:{stacked:true,title:{display:true,text:'R$ Milhões'},beginAtZero:true},
+   y1:{position:'right',title:{display:true,text:'Ratio Shopee ÷ MELI (%)'},grid:{drawOnChartArea:false},ticks:{callback:v=>v+'%'},beginAtZero:true,max:60}}}});
+
+ const R=[
+  ['SHOPEE','sec',null,null],
+  ['Shopee — faturamento','',SHP,'v'],
+  ['Shopee — crescimento MoM','',mom(SHP),'p'],
+  ['Shopee — crescimento YoY','',yoy(SHP),'p'],
+  ['MELI — TENDÊNCIA (BAU atual)','sec',null,null],
+  ['MELI — faturamento','',BASE,'v'],
+  ['MELI — crescimento MoM','',mom(BASE),'p'],
+  ['MELI — crescimento YoY','',yoy(BASE),'p'],
+  ['AS TRÊS CAMADAS DO INCREMENTAL','sec',null,null],
+  ['+ BAU mais forte (não desacelerar)','l1',BAUX,'v'],
+  ['+ BC — 6 grupos cotados (recuperação medida)','l2',BCX,'v'],
+  ['+ SD / fatia móvel','l3',SDX,'v'],
+  ['MELI COM AS 3 CAMADAS','sec',null,null],
+  ['MELI total — faturamento','',TOT.map((v,i)=>isF(i)?v:null),'v'],
+  ['MELI total — crescimento MoM','',mom(TOT).map((v,i)=>isF(i)?v:null),'p'],
+  ['MELI total — crescimento YoY','',yoy(TOT).map((v,i)=>isF(i)?v:null),'p'],
+  ['RATIO SHOPEE ÷ MELI','sec',null,null],
+  ['Ratio realizado / sem ação','',rSemAcao,'r'],
+  ['Ratio com as 3 camadas','l2',rComCam,'r']
+ ];
+ let h='<thead><tr><th>Métrica</th>'+M.map((m,i)=>`<th class="${i===NF-1?'fr':''}">${lb(m)}</th>`).join('')+'<th>jul-dez/26</th></tr></thead><tbody>';
+ R.forEach(([nome,cls,arr,tp])=>{
+  if(cls==='sec'){h+=`<tr class="sec"><td>${nome}</td><td colspan="${M.length+1}"></td></tr>`;return}
+  let tot='';
+  if(tp==='v'){tot=f0(sum(arr,18,23))}
+  else if(tp==='r'){tot=p1(nome.indexOf('camadas')>=0?rFim:rBase)}
+  h+=`<tr class="${cls}"><td>${nome}</td>`+arr.map((v,i)=>{
+   const fr=i===NF-1?'fr':'';
+   if(v==null||isNaN(v))return `<td class="${fr}">–</td>`;
+   if(tp==='v')return `<td class="${fr}">${f0(v)}</td>`;
+   if(tp==='r')return `<td class="${fr}">${p1(v)}</td>`;
+   return `<td class="${fr} ${v>0?'pp':'nn'}">${p0(v)}</td>`;
+  }).join('')+`<td>${tot}</td></tr>`});
+ h+='</tbody>';
+ document.getElementById('tb').innerHTML=h;
+}
+(function(){const s=document.createElement('script');s.src='/d/_libs/chart.min.js';s.onload=build;
+ s.onerror=()=>{const c=document.createElement('script');c.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js';c.onload=build;document.head.appendChild(c)};
+ document.head.appendChild(s)})();
+</script>
+</body>
+</html>

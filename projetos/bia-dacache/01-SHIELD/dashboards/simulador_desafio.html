@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BC Shopee HE — Simulador</title>
+<style>
+ :root{--shp:#EE4D2D;--meli:#FFE600;--inc:#1f9d55;--ink:#2d2d2d;--bg:#f6f6f4;--card:#fff;--bd:#e3e3df}
+ *{box-sizing:border-box}
+ body{margin:0;font-family:'Proxima Nova',system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+ header{background:var(--meli);padding:13px 20px;border-bottom:3px solid #111}
+ header h1{font-size:17px;margin:0;font-weight:800}
+ header .s{font-size:11px;color:#5a5a2e;margin-top:2px}
+ .wrap{padding:16px 20px;max-width:1380px;margin:0 auto}
+ .card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 16px;margin-bottom:13px}
+ .card h3{font-size:13px;margin:0 0 4px 0}
+ .hint{font-size:11.5px;color:#777;line-height:1.5;margin-bottom:9px}
+ .chips{display:flex;gap:6px;flex-wrap:wrap}
+ .chip{font-size:12px;padding:5px 12px;border:1px solid var(--bd);border-radius:999px;cursor:pointer;background:#fafafa;user-select:none}
+ .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+ .ctx{display:flex;gap:10px;flex-wrap:wrap}
+ .cx{flex:1;min-width:175px;border-left:4px solid #ccc;padding:6px 11px;background:#fbfbfa;border-radius:0 8px 8px 0}
+ .cx .l{font-size:10.5px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+ .cx .v{font-size:20px;font-weight:800;margin-top:1px}
+ .cx .p{font-size:10.5px;color:#999}
+ .cx.a{border-left-color:#8bb} .cx.b{border-left-color:#e0a800} .cx.c{border-left-color:#c0392b}
+ .kpis{display:flex;gap:10px;flex-wrap:wrap}
+ .kpi{flex:1;min-width:150px;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:11px 13px}
+ .kpi.hi{background:#eaf7ef;border:2px solid var(--inc)}
+ .kpi .l{font-size:10.5px;color:#888;font-weight:700;text-transform:uppercase;letter-spacing:.3px;line-height:1.3}
+ .kpi .v{font-size:22px;font-weight:800;margin-top:3px}
+ .kpi .p{font-size:11px;color:#777;margin-top:2px;line-height:1.4}
+ .selo{padding:11px 15px;border-radius:10px;margin-bottom:13px;font-size:12.5px;border:2px solid;line-height:1.55}
+ .ok{background:#e9f7ee;border-color:#178a3f;color:#0d5c29}
+ .wr{background:#fff6e5;border-color:#d98a00;color:#8a5800}
+ .bd2{background:#fdecea;border-color:#c0392b;color:#8c2418}
+ .sl{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+ input[type=range]{width:340px}
+ .marks{width:360px;font-size:11px;color:#777;margin-top:5px;line-height:1.6}
+ table{width:100%;border-collapse:collapse;font-size:12px}
+ th,td{border:1px solid var(--bd);padding:5px 8px;text-align:right;white-space:nowrap}
+ th:first-child,td:first-child{text-align:left;font-weight:700}
+ thead th{background:#fafafa;font-weight:700}
+ tfoot td{background:#fafafa;font-weight:800}
+ .box{position:relative;height:400px}
+ .g{font-size:11px;color:#666;line-height:1.7}
+ .g b{color:var(--ink)}
+ .inc{color:#157347;font-weight:700}
+ table.tt td,table.tt th{padding:4px 7px;font-size:11.5px}
+ table.tt th:first-child,table.tt td:first-child{position:sticky;left:0;background:var(--card);min-width:230px;z-index:2;box-shadow:1px 0 0 var(--bd)}
+ table.tt thead th:first-child{background:#fafafa}
+ table.tt .fr{border-right:3px solid #555 !important}
+ table.tt tr.gap td{background:#eaf7ef}
+ table.tt tr.sep td{border-top:2px solid #bbb}
+ table.tt .pp{color:#178a3f} table.tt .nn{color:#c0392b}
+ table.tt tr.hd td:first-child{font-weight:800}
+</style>
+</head>
+<body>
+<header><h1>Combate Shopee · Home Electronics — Simulador do desafio</h1>
+<div class="s">Todos os valores em <b>R$ Milhões</b> · perímetro: faixas de ASP prioritárias · janela projetada: jul a dez/2026</div></header>
+<div class="wrap">
+
+ <div class="card"><h3>1. Qual categoria olhar</h3>
+  <div class="chips" id="cE"></div></div>
+
+ <div class="card"><h3>2. Onde estamos hoje</h3>
+  <div class="hint">O <b>ratio</b> é quanto a Shopee fatura para cada R$ 100 que o MELI fatura nas mesmas faixas. Quanto maior, mais perto do nosso tamanho ela está.</div>
+  <div class="ctx" id="ctx"></div>
+  <div class="hint" id="narr" style="margin-top:9px;margin-bottom:0"></div></div>
+
+ <div class="card"><h3>3. Como a Shopee deve crescer de julho a dezembro</h3>
+  <div class="hint" id="h3"></div>
+  <div class="chips" id="cP"></div></div>
+
+ <div class="card"><h3>4. Em que ratio queremos segurar a Shopee até dezembro</h3>
+  <div class="hint">Arraste para escolher o ratio que queremos ter no período jul-dez/26. Os marcadores mostram onde ele já esteve, para você julgar se o alvo é ambicioso.</div>
+  <div class="sl">
+    <div><input type="range" id="sl" step="0.5"><div class="marks" id="mk"></div></div>
+    <div style="font-size:22px;font-weight:800" id="slv"></div>
+  </div>
+  <div class="chips" style="margin-top:9px" id="cPre"></div></div>
+
+ <div class="kpis" id="kp" style="margin-bottom:13px"></div>
+ <div id="selo"></div>
+
+ <div class="card"><h3>Evolutivo: realizado, projetado e o que falta entregar</h3>
+  <div class="box"><canvas id="cv"></canvas></div>
+  <div class="g" style="margin-top:9px">
+   Barras <b>cheias</b> = realizado (até jun/26) · <b>hachuradas</b> = projetado (jul-dez/26)<br>
+   Barra <b>verde</b> empilhada sobre a do MELI = <b>o incremental que falta entregar</b> para atingir o ratio-alvo<br>
+   Linha <b>preta cheia</b> = ratio realizado · <b>preta tracejada</b> = ratio projetado sem ação · <b>verde tracejada</b> = ratio-alvo escolhido
+  </div></div>
+
+ <div class="card"><h3>Tabela macro — realizado e projetado, mês a mês <span style="font-weight:400;color:#888;font-size:11px">(R$ Milhões)</span></h3>
+  <div class="hint">Até <b>jun/26</b> é realizado. De <b>jul/26</b> em diante é projeção. A coluna de jun/26 tem borda grossa marcando a fronteira. Role para o lado para ver toda a série.</div>
+  <div style="overflow-x:auto"><table class="tt" id="tmac"></table></div>
+  <div class="g" style="margin-top:8px">
+   <b>Shopee</b> = o que ela fatura/vai faturar · <b>MELI sem ação</b> = o que faturamos mantendo o ritmo atual (BAU) · <b>Incremental</b> = o que falta além do BAU para o ratio ficar no alvo · <b>MELI necessário</b> = sem ação + incremental.<br>
+   Em novembro o incremental fica <b>negativo</b>: nossa Black Friday já leva o ratio abaixo do alvo, então há folga naquele mês.
+  </div></div>
+
+ <div class="card"><h3>Resumo do período projetado <span style="font-weight:400;color:#888;font-size:11px">(R$ Milhões)</span></h3>
+  <table id="tm"></table></div>
+
+ <div class="card"><h3>Quanto falta faturar a mais — por faixa de ASP e por mês <span style="font-weight:400;color:#888;font-size:11px">(R$ Milhões)</span></h3>
+  <div class="hint">O valor que falta em cada categoria é distribuído entre as faixas pelo <b>SoB — a participação de cada faixa no faturamento do MELI na categoria</b>, medida no período que você escolher abaixo. <b>Sem fator de projeção</b>: usa o SoB realizado. Ele é muito estável entre as três janelas, então a escolha muda pouco.</div>
+  <div class="chips" id="cS" style="margin-bottom:10px"></div>
+  <div style="overflow-x:auto"><table id="tf"></table></div>
+  <div class="g" style="margin-top:8px">A coluna <b>Ratio hoje</b> é o ratio realizado da própria faixa nos últimos 3 meses (abr-jun/26) — mostra onde a Shopee já está mais perto do nosso tamanho. Valores negativos em novembro significam que a nossa Black Friday já leva o ratio abaixo do alvo naquele mês. Em Heating &amp; Cooling a divisão por faixa é <b>indicativa</b> — a composição da Shopee ali oscila muito.</div></div>
+
+ <div class="card"><h3>Glossário — o que cada termo significa</h3>
+  <div class="g">
+   <b>Ratio</b> = faturamento Shopee ÷ faturamento MELI, nas mesmas faixas de ASP. Ex.: ratio 33% significa que ela fatura R$ 33 para cada R$ 100 nossos.<br>
+   <b>Ratio de hoje</b> = média dos últimos 3 meses fechados (abr, mai e jun/26), <b>já descontado o efeito de calendário</b> — é a foto limpa da posição competitiva atual.<br>
+   <b>Ratio de um ano atrás</b> = realizado de jul a dez/2025 — a mesma janela do ano anterior, comparável mês a mês.<br>
+   <b>MELI sem ação</b> = quanto vamos faturar se mantivermos o ritmo atual, sem nenhuma iniciativa nova. É o ponto de partida contra o qual o incremental é medido.<br>
+   <b>Incremental</b> = quanto o MELI precisa faturar <b>além</b> do "sem ação" para o ratio ficar no alvo escolhido.<br>
+   <b>Efeito de calendário</b> = alguns meses são naturalmente mais fortes (novembro para nós, por exemplo). Descontar isso evita confundir sazonalidade com ganho de terreno.
+  </div></div>
+</div>
+<script>
+const J={"fc":[["LARGE",0.8,"2026-07",234.58,619.07],["LARGE",0.8,"2026-08",237.77,592.76],["LARGE",0.8,"2026-09",264.44,551.44],["LARGE",0.8,"2026-10",258.16,570.63],["LARGE",0.8,"2026-11",293.06,993.15],["LARGE",0.8,"2026-12",245.12,513.51],["LARGE",0.9,"2026-07",246.7,633.25],["LARGE",0.9,"2026-08",262,616.96],["LARGE",0.9,"2026-09",303.7,582],["LARGE",0.9,"2026-10",307.59,608.81],["LARGE",0.9,"2026-11",362.17,1069.28],["LARGE",0.9,"2026-12",310.09,555.49],["LARGE",1,"2026-07",259.02,647.56],["LARGE",1,"2026-08",289.34,644.13],["LARGE",1,"2026-09",353.01,620.17],["LARGE",1,"2026-10",376.63,661.74],["LARGE",1,"2026-11",469.51,1186.34],["LARGE",1,"2026-12",422.2,626.86],["SMALL",0.8,"2026-07",117.34,370.33],["SMALL",0.8,"2026-08",115.36,349.23],["SMALL",0.8,"2026-09",114.1,330.2],["SMALL",0.8,"2026-10",103.06,335.8],["SMALL",0.8,"2026-11",127.31,463.41],["SMALL",0.8,"2026-12",121.71,333.9],["SMALL",0.9,"2026-07",122.15,376.03],["SMALL",0.9,"2026-08",123.98,358.72],["SMALL",0.9,"2026-09",126.42,342.38],["SMALL",0.9,"2026-10",117.38,350.74],["SMALL",0.9,"2026-11",148.88,487.01],["SMALL",0.9,"2026-12",145.9,351.97],["SMALL",1,"2026-07",127.15,381.81],["SMALL",1,"2026-08",133.91,369.4],["SMALL",1,"2026-09",142.24,357.59],["SMALL",1,"2026-10",137.91,371.41],["SMALL",1,"2026-11",183.38,523.13],["SMALL",1,"2026-12",189.16,382.42],["H_C",0.8,"2026-07",99.25,211.34],["H_C",0.8,"2026-08",103.18,229.58],["H_C",0.8,"2026-09",183.82,355.23],["H_C",0.8,"2026-10",145.52,342.19],["H_C",0.8,"2026-11",180.49,591.09],["H_C",0.8,"2026-12",175.94,441.16],["H_C",0.9,"2026-07",104.93,215.72],["H_C",0.9,"2026-08",114.27,238.63],["H_C",0.9,"2026-09",213.83,377.12],["H_C",0.9,"2026-10",177.06,371.4],["H_C",0.9,"2026-11",232.8,656.79],["H_C",0.9,"2026-12",237.62,499.92],["H_C",1,"2026-07",110.88,220.34],["H_C",1,"2026-08",127.31,249.42],["H_C",1,"2026-09",253.64,406.9],["H_C",1,"2026-10",224.93,416.66],["H_C",1,"2026-11",322.45,773.9],["H_C",1,"2026-12",359.31,620.51]],"ref":[["LARGE",0.3305,0.2017,0.2956,0.2394],["SMALL",0.3173,0.1953,0.3553,0.2573],["H_C",0.3912,0.2481,0.4775,0.347]],"feas":[["TOTAL",0.7564,"2024-08"],["LARGE",0.9823,"2024-09"],["SMALL",0.5607,"2024-06"],["H_C",0.8506,"2024-08"]],"mix":[["LARGE","200 a 500",0.0923,0.2909],["LARGE","500 a 1500",0.294,0.3826],["LARGE","1500 a 3000",0.3677,0.2378],["LARGE","+3000",0.2459,0.0886],["SMALL","120 a 150",0.0784,0.1269],["SMALL","150 a 200",0.1279,0.2375],["SMALL","200 a 500",0.4216,0.3557],["SMALL","500 a 1500",0.2845,0.2152],["SMALL","+3000",0.0876,0.0647],["H_C","200 a 500",0.2179,0.1001],["H_C","500 a 1500",0.1336,0.3669],["H_C","1500 a 3000",0.4736,0.4826],["H_C","+3000",0.1749,0.0503]],"hist":[["LARGE",568.12,2816.7],["SMALL",349.44,1789.19],["H_C",382.13,1540.23]],"lvl":[["LARGE",192.95,583.81,0.0725,0.0207],["SMALL",109.39,344.78,0.1233,0.0184],["H_C",107.26,274.19,0.2429,0.001]],"sob":[["LARGE","200 a 500",0.1008,0.0996,0.0923,0.3872],["LARGE","500 a 1500",0.2949,0.2889,0.294,0.4626],["LARGE","1500 a 3000",0.3745,0.3782,0.3677,0.2301],["LARGE","+3000",0.2298,0.2333,0.2459,0.1478],["SMALL","120 a 150",0.0775,0.0798,0.0784,0.722],["SMALL","150 a 200",0.1156,0.1244,0.1279,0.6426],["SMALL","200 a 500",0.4361,0.4244,0.4216,0.2922],["SMALL","500 a 1500",0.2803,0.2812,0.2845,0.2751],["SMALL","+3000",0.0904,0.0903,0.0876,0.2262],["H_C","200 a 500",0.2422,0.2473,0.2179,0.2312],["H_C","500 a 1500",0.1514,0.1365,0.1336,0.6675],["H_C","1500 a 3000",0.4437,0.448,0.4736,0.6735],["H_C","+3000",0.1627,0.1682,0.1749,0.1331]]}, REAL=[["LARGE","2025-01",30.33,280.42,null,null],["LARGE","2025-02",26.41,265.66,null,null],["LARGE","2025-03",31.87,310.19,null,null],["LARGE","2025-04",33.64,309.31,null,null],["LARGE","2025-05",31.46,371.62,null,null],["LARGE","2025-06",47.95,385.15,null,null],["LARGE","2025-07",61.07,408.14,null,null],["LARGE","2025-08",73.23,407.45,null,null],["LARGE","2025-09",91.55,395.63,null,null],["LARGE","2025-10",99.25,424.57,null,null],["LARGE","2025-11",129.09,778.25,null,null],["LARGE","2025-12",113.92,402.65,null,null],["LARGE","2026-01",113.7,447.73,null,null],["LARGE","2026-02",113.34,415.82,null,null],["LARGE","2026-03",123.13,549.81,null,null],["LARGE","2026-04",131.44,513.27,null,null],["LARGE","2026-05",186.4,596.16,null,null],["LARGE","2026-06",178.87,570.83,null,null],["LARGE","2026-07",null,null,246.7,633.25],["LARGE","2026-08",null,null,262,616.96],["LARGE","2026-09",null,null,303.7,582],["LARGE","2026-10",null,null,307.59,608.81],["LARGE","2026-11",null,null,362.17,1069.28],["LARGE","2026-12",null,null,310.09,555.49],["SMALL","2025-01",38.42,226.58,null,null],["SMALL","2025-02",51.16,202.89,null,null],["SMALL","2025-03",55.51,231.09,null,null],["SMALL","2025-04",51.94,232.7,null,null],["SMALL","2025-05",52.45,272.11,null,null],["SMALL","2025-06",56.53,260.05,null,null],["SMALL","2025-07",56.63,280.44,null,null],["SMALL","2025-08",56.69,272.58,null,null],["SMALL","2025-09",59.28,267.75,null,null],["SMALL","2025-10",52.72,280.04,null,null],["SMALL","2025-11",65.01,404.32,null,null],["SMALL","2025-12",59.11,284.06,null,null],["SMALL","2026-01",68.68,279.94,null,null],["SMALL","2026-02",69.29,266.27,null,null],["SMALL","2026-03",98.66,333.61,null,null],["SMALL","2026-04",95.9,315.07,null,null],["SMALL","2026-05",155.24,367.05,null,null],["SMALL","2026-06",114.5,347.09,null,null],["SMALL","2026-07",null,null,122.15,376.03],["SMALL","2026-08",null,null,123.98,358.72],["SMALL","2026-09",null,null,126.42,342.38],["SMALL","2026-10",null,null,117.38,350.74],["SMALL","2026-11",null,null,148.88,487.01],["SMALL","2026-12",null,null,145.9,351.97],["H_C","2025-01",11.83,227.2,null,null],["H_C","2025-02",20.4,249.68,null,null],["H_C","2025-03",27.32,185.28,null,null],["H_C","2025-04",16.97,125.41,null,null],["H_C","2025-05",15.07,131.36,null,null],["H_C","2025-06",17.35,131.53,null,null],["H_C","2025-07",21.75,165.62,null,null],["H_C","2025-08",22.83,164.07,null,null],["H_C","2025-09",46.5,209.81,null,null],["H_C","2025-10",99.41,231.83,null,null],["H_C","2025-11",87.25,396.53,null,null],["H_C","2025-12",104.39,372.37,null,null],["H_C","2026-01",100.84,293.29,null,null],["H_C","2026-02",101.08,222.22,null,null],["H_C","2026-03",140.68,238.1,null,null],["H_C","2026-04",75.94,187.85,null,null],["H_C","2026-05",106.52,177.19,null,null],["H_C","2026-06",78.48,181.36,null,null],["H_C","2026-07",null,null,104.93,215.72],["H_C","2026-08",null,null,114.27,238.63],["H_C","2026-09",null,null,213.83,377.12],["H_C","2026-10",null,null,177.06,371.4],["H_C","2026-11",null,null,232.8,656.79],["H_C","2026-12",null,null,237.62,499.92]];
+const D1=['LARGE','SMALL','H_C'];
+const NM={LARGE:'Large Appliances',SMALL:'Small Appliances',H_C:'Heating & Cooling',TOTAL:'Todas as 3 categorias'};
+const FC={},FEAS={},MIX={},HIST={},LVL={};
+J.fc.forEach(([d,p,m,s,me])=>{FC[d]=FC[d]||{};FC[d][p]=FC[d][p]||{};FC[d][p][m]={s,m:me};});
+J.feas.forEach(([d,mx,q])=>FEAS[d]={mx,q});
+J.mix.forEach(([d,f,mm,ms])=>{MIX[d]=MIX[d]||[];MIX[d].push({f,mm,ms});});
+J.hist.forEach(([d,s,m])=>HIST[d]={s,m});
+J.lvl.forEach(([d,s,m,gs,gm])=>LVL[d]={s,m,gs,gm});
+const SOB={};J.sob.forEach(([d,f,s3,s6,s12,rf])=>{SOB[d]=SOB[d]||[];SOB[d].push({f,s3,s6,s12,rf});});
+const MN=['','jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const lbl=m=>MN[+m.slice(5)]+'/'+m.slice(2,4);
+const RS={};REAL.forEach(([d,m,rs,rm])=>{RS[d]=RS[d]||{};RS[d][m]={rs,rm};});
+const MESF=[...new Set(J.fc.map(r=>r[2]))].sort();
+const MESR=[...new Set(REAL.map(r=>r[1]))].filter(m=>m<='2026-06').sort();
+const MESA=[...MESR,...MESF];
+let sel='TOTAL',phi=0.9,alvo=null,chart=null,sobW='s3';
+const f0=v=>v==null?'–':Math.round(v).toLocaleString('pt-BR');
+const p1=v=>v==null?'–':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+const ds=()=>sel==='TOTAL'?D1:[sel];
+
+function hoje(){let s=0,m=0;ds().forEach(d=>{s+=LVL[d].s;m+=LVL[d].m});return s/m}
+function anoAtras(){let s=0,m=0;ds().forEach(d=>{s+=HIST[d].s;m+=HIST[d].m});return s/m}
+function semAcao(){let s=0,m=0;ds().forEach(d=>MESF.forEach(x=>{s+=FC[d][phi][x].s;m+=FC[d][phi][x].m}));return s/m}
+function gmed(k){let w=0,t=0;ds().forEach(d=>{const p=k==='s'?LVL[d].s:LVL[d].m;w+=p;t+=p*(k==='s'?LVL[d].gs:LVL[d].gm)});return t/w}
+
+function calc(){
+  const A=alvo/100, sa=semAcao();
+  let o={shp:0,base:0,nec:0,h25m:0,mes:{},porD1:{}};
+  MESF.forEach(m=>o.mes[m]={shp:0,base:0,nec:0});
+  ds().forEach(d=>{
+    let s=0,b=0; MESF.forEach(m=>{s+=FC[d][phi][m].s;b+=FC[d][phi][m].m});
+    const rIn=s/b, aD=rIn*(A/sa);           // escala proporcional ao alvo agregado
+    const necD=s/aD;
+    o.porD1[d]={shp:s,base:b,nec:necD,inc:necD-b,alvo:aD,rIn:rIn,incMes:{}};
+    MESF.forEach(m=>{o.mes[m].shp+=FC[d][phi][m].s;o.mes[m].base+=FC[d][phi][m].m;o.mes[m].nec+=FC[d][phi][m].s/aD;
+      o.porD1[d].incMes[m]=FC[d][phi][m].s/aD-FC[d][phi][m].m;});
+    o.shp+=s;o.base+=b;o.nec+=necD;o.h25m+=HIST[d].m;
+  });
+  o.inc=o.nec-o.base; o.rIn=o.shp/o.base;
+  o.reqYoY=o.nec/o.h25m-1; o.baseYoY=o.base/o.h25m-1;
+  o.max=FEAS[sel]?FEAS[sel].mx:Math.min(...D1.map(d=>FEAS[d].mx));
+  return o;
+}
+function ctxRender(){
+  const h=hoje()*100,a=anoAtras()*100,s=semAcao()*100;
+  document.getElementById('ctx').innerHTML=`
+   <div class="cx a"><div class="l">Ratio um ano atrás</div><div class="v">${p1(a)}</div><div class="p">realizado jul-dez/2025</div></div>
+   <div class="cx b"><div class="l">Ratio hoje</div><div class="v">${p1(h)}</div><div class="p">média abr-jun/2026, sem calendário</div></div>
+   <div class="cx c"><div class="l">Ratio projetado sem ação</div><div class="v">${p1(s)}</div><div class="p">jul-dez/2026</div></div>`;
+  document.getElementById('narr').innerHTML=`Em <b>${NM[sel]}</b>: o ratio saiu de <b>${p1(a)}</b> (jul-dez/25) para <b>${p1(h)}</b> hoje — <b>${((h/a-1)*100).toFixed(0)}% de avanço dela em 12 meses</b>. Sem nenhuma ação, a projeção chega a <b>${p1(s)}</b> até dezembro.`;
+  document.getElementById('h3').innerHTML=`Nos últimos 3 meses fechados (abr-jun/26), descontado o calendário, a <b>Shopee cresceu ${p1(gmed('s')*100)} por mês</b> e o <b>MELI ${p1(gmed('m')*100)} por mês</b> em ${NM[sel]}. Escolha o que acontece com o ritmo dela daqui pra frente:`;
+}
+function slSetup(){
+  const h=hoje()*100,a=anoAtras()*100,s=semAcao()*100;
+  const el=document.getElementById('sl');
+  el.min=Math.floor(Math.min(a,h)-6); el.max=Math.ceil(Math.max(s,h)+6);
+  if(alvo===null||alvo<el.min||alvo>el.max) alvo=Math.round(h*2)/2;
+  el.value=alvo;
+  document.getElementById('mk').innerHTML=`Referências para julgar o alvo: &nbsp;um ano atrás <b>${p1(a)}</b> &nbsp;·&nbsp; hoje <b>${p1(h)}</b> &nbsp;·&nbsp; sem ação <b>${p1(s)}</b>`;
+  document.getElementById('slv').textContent=p1(alvo);
+}
+function render(){
+  ctxRender(); slSetup();
+  const o=calc();
+  document.getElementById('kp').innerHTML=`
+   <div class="kpi"><div class="l">Shopee vai faturar<br>jul-dez/26</div><div class="v">${f0(o.shp)}</div><div class="p">ratio de ${p1(o.rIn*100)} se nada mudar</div></div>
+   <div class="kpi"><div class="l">MELI se não fizermos nada<br>jul-dez/26</div><div class="v">${f0(o.base)}</div><div class="p">crescendo ${p1(o.baseYoY*100)} vs jul-dez/25</div></div>
+   <div class="kpi"><div class="l">MELI precisa faturar<br>para o ratio ficar em ${p1(alvo)}</div><div class="v">${f0(o.nec)}</div><div class="p">crescendo ${p1(o.reqYoY*100)} vs jul-dez/25</div></div>
+   <div class="kpi hi"><div class="l">O desafio: quanto falta entregar</div><div class="v inc">${f0(o.inc)}</div><div class="p">${p1(o.inc/o.base*100)} acima do "sem ação"</div></div>`;
+  const r=o.reqYoY/o.max; let cl='ok',tx;
+  const cmp=`Exige o MELI crescer <b>${p1(o.reqYoY*100)}</b> no semestre (vs jul-dez/25). O maior crescimento que já entregamos em 6 meses em ${NM[sel]} foi <b>${p1(o.max*100)}</b>.`;
+  if(r<=0.8){tx='<b>ALVO VIÁVEL.</b> '+cmp+' Há folga.';}
+  else if(r<=1.05){cl='wr';tx='<b>ALVO NO LIMITE.</b> '+cmp+' É exequível, mas sem margem: depende de execução impecável — e é o que justifica pedir verba.';}
+  else {cl='bd2';tx='<b>ALVO INFACTÍVEL.</b> '+cmp+' Seria '+(r).toLocaleString('pt-BR',{maximumFractionDigits:1})+'x o nosso recorde. Não sustenta um compromisso com a liderança.';}
+  document.getElementById('selo').innerHTML='<div class="selo '+cl+'">'+tx+'</div>';
+
+  // grafico
+  const rs=MESA.map(m=>{const d=ds();let v=0,ok=false;d.forEach(x=>{const y=RS[x]&&RS[x][m];if(y&&y.rs!=null){v+=y.rs;ok=true}});return ok?v:null});
+  const rm=MESA.map(m=>{const d=ds();let v=0,ok=false;d.forEach(x=>{const y=RS[x]&&RS[x][m];if(y&&y.rm!=null){v+=y.rm;ok=true}});return ok?v:null});
+  const fs=MESA.map(m=>MESF.includes(m)?o.mes[m].shp:null);
+  const fm=MESA.map(m=>MESF.includes(m)?o.mes[m].base:null);
+  const fi=MESA.map(m=>MESF.includes(m)?Math.max(0,o.mes[m].nec-o.mes[m].base):null);
+  const bS=MESA.map((m,i)=>rs[i]!=null?rs[i]:fs[i]);
+  const bM=MESA.map((m,i)=>rm[i]!=null?rm[i]:fm[i]);
+  const isF=MESA.map(m=>MESF.includes(m));
+  const rat=MESA.map((m,i)=>bS[i]!=null&&bM[i]?bS[i]/bM[i]*100:null);
+  const rReal=rat.map((v,i)=>isF[i]?null:v);
+  const rProj=rat.map((v,i)=>{const j=i>0&&isF[i]&&!isF[i-1];return(isF[i]||j)?v:null});
+  const rAlvo=MESA.map((m,i)=>isF[i]?alvo:null);
+  const hp=(c)=>{const cc=document.createElement('canvas');cc.width=7;cc.height=7;const x=cc.getContext('2d');
+    x.fillStyle='#fff';x.fillRect(0,0,7,7);x.strokeStyle=c;x.lineWidth=2.4;x.beginPath();x.moveTo(0,7);x.lineTo(7,0);x.stroke();return x.createPattern(cc,'repeat')};
+  const pS=hp('#EE4D2D'),pM=hp('#d9c400'),pI=hp('#1f9d55');
+  if(chart)chart.destroy();
+  chart=new Chart(document.getElementById('cv'),{data:{labels:MESA,datasets:[
+    {type:'bar',label:'Shopee',data:bS,stack:'a',yAxisID:'y',order:4,backgroundColor:MESA.map((m,i)=>isF[i]?pS:'#EE4D2D'),borderColor:'#EE4D2D',borderWidth:MESA.map((m,i)=>isF[i]?1.4:0)},
+    {type:'bar',label:'MELI',data:bM,stack:'b',yAxisID:'y',order:4,backgroundColor:MESA.map((m,i)=>isF[i]?pM:'#FFE600'),borderColor:'#c9b800',borderWidth:1.1},
+    {type:'bar',label:'Incremental a entregar',data:fi,stack:'b',yAxisID:'y',order:4,backgroundColor:pI,borderColor:'#1f9d55',borderWidth:1.4},
+    {type:'line',label:'Ratio realizado',data:rReal,yAxisID:'y1',borderColor:'#111',backgroundColor:'#111',borderWidth:2.4,tension:.2,order:1,pointRadius:2.4,spanGaps:false},
+    {type:'line',label:'Ratio sem ação',data:rProj,yAxisID:'y1',borderColor:'#111',borderDash:[6,4],borderWidth:2.4,tension:.2,order:1,pointRadius:2.4,spanGaps:false},
+    {type:'line',label:'Ratio-alvo',data:rAlvo,yAxisID:'y1',borderColor:'#1f9d55',borderDash:[3,3],borderWidth:2,pointRadius:0,order:1,spanGaps:false}
+  ]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'top',labels:{boxWidth:13,font:{size:11}}},
+      tooltip:{callbacks:{title:t=>t[0].label+(isF[t[0].dataIndex]?' — projetado':' — realizado')}}},
+    scales:{x:{stacked:true},y:{stacked:true,title:{display:true,text:'R$ Milhões'},beginAtZero:true},
+      y1:{position:'right',title:{display:true,text:'Ratio Shopee ÷ MELI (%)'},grid:{drawOnChartArea:false},ticks:{callback:v=>v+'%'},beginAtZero:true}}}});
+
+  // ---- TABELA MACRO transposta (meses nas colunas) ----
+  const iJun=MESA.indexOf('2026-06');
+  const necA=MESA.map((m,i)=>isF[i]?o.mes[m].nec:bM[i]);
+  const incA=MESA.map((m,i)=>isF[i]?o.mes[m].nec-o.mes[m].base:null);
+  const mom=a=>a.map((v,i)=>(i>0&&v!=null&&a[i-1]!=null&&a[i-1]>0)?(v/a[i-1]-1)*100:null);
+  const yoy=a=>a.map((v,i)=>{const j=i-12;return(j>=0&&v!=null&&a[j]!=null&&a[j]>0)?(v/a[j]-1)*100:null});
+  const soPro=a=>a.map((v,i)=>isF[i]?v:null);
+  const R=[
+    ['Shopee — faturamento',bS,'v',''],
+    ['Shopee — crescimento MoM',mom(bS),'p',''],
+    ['Shopee — crescimento YoY',yoy(bS),'p',''],
+    ['MELI sem ação (BAU) — faturamento',bM,'v','sep'],
+    ['MELI sem ação — crescimento MoM',mom(bM),'p',''],
+    ['MELI sem ação — crescimento YoY',yoy(bM),'p',''],
+    ['Incremental necessário',incA,'v','gap sep'],
+    ['MELI necessário (BAU + incremental)',soPro(necA),'v','sep'],
+    ['MELI necessário — crescimento MoM',soPro(mom(necA)),'p',''],
+    ['MELI necessário — crescimento YoY',soPro(yoy(necA)),'p',''],
+    ['Ratio sem ação',MESA.map((m,i)=>bS[i]!=null&&bM[i]?bS[i]/bM[i]*100:null),'p','sep'],
+    ['Ratio com o incremental',MESA.map((m,i)=>isF[i]&&necA[i]?bS[i]/necA[i]*100:null),'p','']
+  ];
+  let mh='<thead><tr><th>Métrica</th>'+MESA.map((m,i)=>`<th class="${i===iJun?'fr':''}">${lbl(m)}</th>`).join('')+'</tr></thead><tbody>';
+  R.forEach(([nome,arr,tp,cls])=>{
+    mh+=`<tr class="${cls}${tp==='v'?' hd':''}"><td>${nome}</td>`+arr.map((v,i)=>{
+      const fr=i===iJun?'fr':'';
+      if(v==null) return `<td class="${fr}">–</td>`;
+      if(tp==='v') return `<td class="${fr}">${f0(v)}</td>`;
+      return `<td class="${fr} ${v>0?'pp':(v<0?'nn':'')}">${v.toLocaleString('pt-BR',{maximumFractionDigits:0})}%</td>`;
+    }).join('')+'</tr>';});
+  mh+='</tbody>';
+  document.getElementById('tmac').innerHTML=mh;
+
+  let h='<thead><tr><th>Mês</th><th>Shopee<br>(projetado)</th><th>MELI<br>sem ação</th><th>MELI<br>necessário</th><th>Falta<br>entregar</th><th>Ratio<br>sem ação</th></tr></thead><tbody>';
+  MESF.forEach(m=>{const x=o.mes[m];h+=`<tr><td>${m}</td><td>${f0(x.shp)}</td><td>${f0(x.base)}</td><td>${f0(x.nec)}</td><td class="inc">${f0(x.nec-x.base)}</td><td>${p1(x.shp/x.base*100)}</td></tr>`});
+  h+=`</tbody><tfoot><tr><td>jul-dez/26</td><td>${f0(o.shp)}</td><td>${f0(o.base)}</td><td>${f0(o.nec)}</td><td class="inc">${f0(o.inc)}</td><td>${p1(o.rIn*100)}</td></tr></tfoot>`;
+  document.getElementById('tm').innerHTML=h;
+
+  let g='<thead><tr><th>Categoria · faixa de ASP</th><th>SoB<br>MELI</th><th>Ratio<br>hoje</th>'+MESF.map(m=>`<th>${lbl(m)}</th>`).join('')+'<th>jul-dez</th></tr></thead><tbody>';
+  const colT={};MESF.forEach(m=>colT[m]=0);let grand=0;
+  ds().forEach(d=>{const q=o.porD1[d];
+    SOB[d].forEach(x=>{const sb=x[sobW];
+      let tot=0;const cel=MESF.map(m=>{const v=q.incMes[m]*sb;colT[m]+=v;tot+=v;return `<td>${f0(v)}</td>`}).join('');
+      grand+=tot;
+      g+=`<tr><td>${sel==='TOTAL'?NM[d].split(' ')[0]+' · ':''}${x.f}</td><td>${p1(sb*100)}</td><td>${p1(x.rf*100)}</td>${cel}<td class="inc">${f0(tot)}</td></tr>`})});
+  g+=`</tbody><tfoot><tr><td>TOTAL</td><td></td><td></td>${MESF.map(m=>`<td>${f0(colT[m])}</td>`).join('')}<td class="inc">${f0(grand)}</td></tr></tfoot>`;
+  document.getElementById('tf').innerHTML=g;
+}
+function chips(id,items,cur,set){const c=document.getElementById(id);c.innerHTML='';
+  items.forEach(([k,l])=>{const s=document.createElement('span');s.className='chip'+(k===cur?' on':'');s.innerHTML=l;
+    s.onclick=()=>{set(k);draw()};c.appendChild(s)})}
+function draw(){
+  chips('cE',[...D1.map(d=>[d,NM[d]]),['TOTAL','Todas as 3']],sel,v=>{sel=v;alvo=null});
+  chips('cP',[[0.8,'Desacelera forte'],[0.9,'Desacelera devagar'],[1,'Mantém o ritmo atual']],phi,v=>phi=v);
+  chips('cPre',[['h','Segurar no ratio de hoje'],['a','Voltar ao ratio de um ano atrás'],['s','Deixar sem ação']],'',k=>{
+    alvo=Math.round((k==='h'?hoje():k==='a'?anoAtras():semAcao())*1000)/10;});
+  chips('cS',[['s3','SoB dos últimos 3 meses'],['s6','últimos 6 meses'],['s12','últimos 12 meses']],sobW,v=>sobW=v);
+  render();
+}
+document.getElementById('sl').addEventListener('input',e=>{alvo=parseFloat(e.target.value);render()});
+(function(){const g=document.createElement('script');g.src='/d/_libs/chart.min.js';g.onload=draw;
+ g.onerror=()=>{const c=document.createElement('script');c.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js';c.onload=draw;document.head.appendChild(c)};
+ document.head.appendChild(g)})();
+</script>
+</body>
+</html>

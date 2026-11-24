@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BC Shopee HE — Simulador de Incremental</title>
+<style>
+ :root{--shp:#EE4D2D;--meli:#FFE600;--ink:#2d2d2d;--bg:#f6f6f4;--card:#fff;--border:#e3e3df}
+ *{box-sizing:border-box}
+ body{margin:0;font-family:'Proxima Nova',system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+ header{background:var(--meli);padding:13px 20px;border-bottom:3px solid #111;display:flex;align-items:center}
+ header h1{font-size:17px;margin:0;font-weight:800}
+ header .sub{font-size:11px;color:#5a5a2e;margin-left:auto}
+ .wrap{padding:16px 20px;max-width:1400px;margin:0 auto}
+ .ctl{display:flex;gap:22px;flex-wrap:wrap;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 16px;margin-bottom:14px}
+ .grp{display:flex;flex-direction:column;gap:6px}
+ .grp>label{font-size:10px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.5px}
+ .chips{display:flex;gap:6px;flex-wrap:wrap}
+ .chip{font-size:12px;padding:4px 11px;border:1px solid var(--border);border-radius:999px;cursor:pointer;background:#fafafa;user-select:none}
+ .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+ .slid{display:flex;align-items:center;gap:9px}
+ input[type=range]{width:210px}
+ .kpis{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+ .kpi{flex:1;min-width:140px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 13px}
+ .kpi.hi{background:#fff8e1;border-color:#e0c000;border-width:2px}
+ .kpi .lab{font-size:10px;text-transform:uppercase;color:#999;font-weight:700;letter-spacing:.4px}
+ .kpi .val{font-size:22px;font-weight:800;margin-top:2px}
+ .kpi .sub{font-size:11px;color:#777;margin-top:1px}
+ .selo{padding:11px 15px;border-radius:10px;margin-bottom:14px;font-size:13px;border:2px solid}
+ .ok{background:#e9f7ee;border-color:#178a3f;color:#0d5c29}
+ .warn{background:#fff6e5;border-color:#d98a00;color:#8a5800}
+ .bad{background:#fdecea;border-color:#c0392b;color:#8c2418}
+ .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 16px;margin-bottom:14px}
+ .card h3{font-size:13px;margin:0 0 8px 0}
+ table{width:100%;border-collapse:collapse;font-size:12px}
+ th,td{border:1px solid var(--border);padding:5px 8px;text-align:right;white-space:nowrap}
+ th:first-child,td:first-child{text-align:left;font-weight:700}
+ thead th{background:#fafafa}
+ tfoot td{background:#fafafa;font-weight:700}
+ .leg{font-size:11px;color:#777;margin-top:8px;line-height:1.5}
+ .inc{color:#c0392b;font-weight:700}
+</style>
+</head>
+<body>
+<header><h1>Combate Shopee · HE — Simulador de Incremental (joystick)</h1>
+<span class="sub">R$ Mi · jul-dez/26 · combo v1+v2 · faixas-foco</span></header>
+<div class="wrap">
+ <div class="ctl">
+  <div class="grp"><label>Escopo</label><div class="chips" id="cE"></div></div>
+  <div class="grp"><label>Dial A · trajetória Shopee (φ)</label><div class="chips" id="cP"></div></div>
+  <div class="grp"><label>Dial C · ratio de referência a conter</label><div class="chips" id="cR"></div></div>
+  <div class="grp"><label>Ajuste fino do alvo</label>
+    <div class="slid"><input type="range" id="sl" min="-12" max="12" step="0.5" value="0">
+    <span id="slv" style="font-size:12px;font-weight:700;min-width:120px"></span></div></div>
+ </div>
+ <div class="kpis" id="kp"></div>
+ <div id="selo"></div>
+ <div class="card"><h3>Mês a mês</h3><table id="tm"></table>
+  <div class="leg">MELI necessário = Shopee projetada ÷ ratio-alvo. Incremental = necessário − baseline inercial.</div></div>
+ <div class="card"><h3>Alocação do incremental por faixa de ASP</h3><table id="tf"></table>
+  <div class="leg">Alocado pelo <b>mix LTM do MELI</b> na D1 (o incremental é GMV nosso a entregar). Em H&amp;C o mix da Shopee é instável (CV 60-77%) → alocação <b>indicativa</b>.</div></div>
+</div>
+<script>
+const J = {"fc":[["LARGE",0.8,"2026-07",234.58,619.07],["LARGE",0.8,"2026-08",237.77,592.76],["LARGE",0.8,"2026-09",264.44,551.44],["LARGE",0.8,"2026-10",258.16,570.63],["LARGE",0.8,"2026-11",293.06,993.15],["LARGE",0.8,"2026-12",245.12,513.51],["LARGE",0.9,"2026-07",246.7,633.25],["LARGE",0.9,"2026-08",262,616.96],["LARGE",0.9,"2026-09",303.7,582],["LARGE",0.9,"2026-10",307.59,608.81],["LARGE",0.9,"2026-11",362.17,1069.28],["LARGE",0.9,"2026-12",310.09,555.49],["LARGE",1,"2026-07",259.02,647.56],["LARGE",1,"2026-08",289.34,644.13],["LARGE",1,"2026-09",353.01,620.17],["LARGE",1,"2026-10",376.63,661.74],["LARGE",1,"2026-11",469.51,1186.34],["LARGE",1,"2026-12",422.2,626.86],["SMALL",0.8,"2026-07",117.34,370.33],["SMALL",0.8,"2026-08",115.36,349.23],["SMALL",0.8,"2026-09",114.1,330.2],["SMALL",0.8,"2026-10",103.06,335.8],["SMALL",0.8,"2026-11",127.31,463.41],["SMALL",0.8,"2026-12",121.71,333.9],["SMALL",0.9,"2026-07",122.15,376.03],["SMALL",0.9,"2026-08",123.98,358.72],["SMALL",0.9,"2026-09",126.42,342.38],["SMALL",0.9,"2026-10",117.38,350.74],["SMALL",0.9,"2026-11",148.88,487.01],["SMALL",0.9,"2026-12",145.9,351.97],["SMALL",1,"2026-07",127.15,381.81],["SMALL",1,"2026-08",133.91,369.4],["SMALL",1,"2026-09",142.24,357.59],["SMALL",1,"2026-10",137.91,371.41],["SMALL",1,"2026-11",183.38,523.13],["SMALL",1,"2026-12",189.16,382.42],["H_C",0.8,"2026-07",99.25,211.34],["H_C",0.8,"2026-08",103.18,229.58],["H_C",0.8,"2026-09",183.82,355.23],["H_C",0.8,"2026-10",145.52,342.19],["H_C",0.8,"2026-11",180.49,591.09],["H_C",0.8,"2026-12",175.94,441.16],["H_C",0.9,"2026-07",104.93,215.72],["H_C",0.9,"2026-08",114.27,238.63],["H_C",0.9,"2026-09",213.83,377.12],["H_C",0.9,"2026-10",177.06,371.4],["H_C",0.9,"2026-11",232.8,656.79],["H_C",0.9,"2026-12",237.62,499.92],["H_C",1,"2026-07",110.88,220.34],["H_C",1,"2026-08",127.31,249.42],["H_C",1,"2026-09",253.64,406.9],["H_C",1,"2026-10",224.93,416.66],["H_C",1,"2026-11",322.45,773.9],["H_C",1,"2026-12",359.31,620.51]],"ref":[["LARGE",0.3305,0.2017,0.2956,0.2394],["SMALL",0.3173,0.1953,0.3553,0.2573],["H_C",0.3912,0.2481,0.4775,0.347]],"feas":[["TOTAL",0.7564,"2024-08"],["LARGE",0.9823,"2024-09"],["SMALL",0.5607,"2024-06"],["H_C",0.8506,"2024-08"]],"mix":[["LARGE","200 a 500",0.0923,0.2909],["LARGE","500 a 1500",0.294,0.3826],["LARGE","1500 a 3000",0.3677,0.2378],["LARGE","+3000",0.2459,0.0886],["SMALL","120 a 150",0.0784,0.1269],["SMALL","150 a 200",0.1279,0.2375],["SMALL","200 a 500",0.4216,0.3557],["SMALL","500 a 1500",0.2845,0.2152],["SMALL","+3000",0.0876,0.0647],["H_C","200 a 500",0.2179,0.1001],["H_C","500 a 1500",0.1336,0.3669],["H_C","1500 a 3000",0.4736,0.4826],["H_C","+3000",0.1749,0.0503]],"hist":[["LARGE",568.12,2816.7],["SMALL",349.44,1789.19],["H_C",382.13,1540.23]]};
+const NOME={LARGE:'Large Appliances',SMALL:'Small Appliances',H_C:'Heating & Cooling',TOTAL:'Total 3 D1s'};
+const D1=['LARGE','SMALL','H_C'];
+const FC={},REF={},FEAS={},MIX={},HIST={};
+J.fc.forEach(([d,p,m,s,me])=>{FC[d]=FC[d]||{};FC[d][p]=FC[d][p]||{};FC[d][p][m]={s,m:me};});
+J.ref.forEach(([d,l,h,q,lt])=>REF[d]={l3m:l,h225:h,q226:q,ltm:lt});
+J.feas.forEach(([d,mx,q])=>FEAS[d]={mx,q});
+J.mix.forEach(([d,f,mm,ms])=>{MIX[d]=MIX[d]||[];MIX[d].push({f,mm,ms});});
+J.hist.forEach(([d,s,m])=>HIST[d]={s,m});
+const MES=[...new Set(J.fc.map(r=>r[2]))].sort();
+const REFN={l3m:'Nível atual (L3M dessaz.)',h225:"H2'25 — zero deterioração YoY",q226:"Q2'26 (⚠ sazonal)",ltm:'LTM'};
+let sel='TOTAL',phi=0.9,ref='l3m',adj=0;
+const f0=v=>v==null?'–':Math.round(v).toLocaleString('pt-BR');
+const f1=v=>v==null?'–':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
+const pc=v=>v==null?'–':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+
+function calc(){
+  const ds = sel==='TOTAL'?D1:[sel];
+  let out={shp:0,base:0,nec:0,inc:0,h25s:0,h25m:0,meses:{}};
+  MES.forEach(m=>out.meses[m]={shp:0,base:0,nec:0});
+  ds.forEach(d=>{
+    const alvo=Math.max(0.01, REF[d][ref]+adj/100);
+    MES.forEach(m=>{ const x=FC[d][phi][m];
+      out.meses[m].shp+=x.s; out.meses[m].base+=x.m; out.meses[m].nec+=x.s/alvo; });
+    let s=0,b=0; MES.forEach(m=>{s+=FC[d][phi][m].s;b+=FC[d][phi][m].m;});
+    out.shp+=s; out.base+=b; out.nec+=s/alvo; out.h25s+=HIST[d].s; out.h25m+=HIST[d].m;
+  });
+  out.inc=out.nec-out.base;
+  out.alvoEq=out.shp/out.nec;
+  out.reqYoY=out.nec/out.h25m-1; out.baseYoY=out.base/out.h25m-1;
+  out.maxHist = FEAS[sel] ? FEAS[sel].mx : Math.min(...D1.map(d=>FEAS[d].mx));
+  out.maxQ = FEAS[sel] ? FEAS[sel].q : '';
+  return out;
+}
+function render(){
+  const o=calc();
+  document.getElementById('slv').textContent=(adj>0?'+':'')+adj.toLocaleString('pt-BR',{maximumFractionDigits:1})+' pp → alvo '+pc(o.alvoEq*100);
+  document.getElementById('kp').innerHTML=`
+   <div class="kpi"><div class="lab">Shopee jul-dez (proj.)</div><div class="val">${f0(o.shp)}</div><div class="sub">φ=${phi.toLocaleString('pt-BR')} · ratio inercial ${pc(o.shp/o.base*100)}</div></div>
+   <div class="kpi"><div class="lab">MELI baseline (inercial)</div><div class="val">${f0(o.base)}</div><div class="sub">YoY ${pc(o.baseYoY*100)} vs H2'25</div></div>
+   <div class="kpi"><div class="lab">MELI necessário</div><div class="val">${f0(o.nec)}</div><div class="sub">para ratio ${pc(o.alvoEq*100)}</div></div>
+   <div class="kpi hi"><div class="lab">Incremental necessário</div><div class="val inc">${f0(o.inc)}</div><div class="sub">${pc(o.inc/o.base*100)} sobre o baseline</div></div>
+   <div class="kpi"><div class="lab">Crescimento YoY exigido</div><div class="val">${pc(o.reqYoY*100)}</div><div class="sub">recorde histórico: ${pc(o.maxHist*100)}</div></div>`;
+  const r=o.reqYoY/o.maxHist;
+  let cls='ok',txt='';
+  if(r<=0.8){cls='ok';txt='<b>VIÁVEL</b> — o crescimento exigido ('+pc(o.reqYoY*100)+') está confortavelmente abaixo do maior que já entregamos em 6 meses ('+pc(o.maxHist*100)+').';}
+  else if(r<=1.05){cls='warn';txt='<b>NO LIMITE</b> — o crescimento exigido ('+pc(o.reqYoY*100)+') está no teto do nosso recorde histórico ('+pc(o.maxHist*100)+'). Exequível, mas sem folga: depende de execução impecável.';}
+  else {cls='bad';txt='<b>INFACTÍVEL</b> — exigiria '+pc(o.reqYoY*100)+' de crescimento, '+ (o.reqYoY/o.maxHist).toLocaleString('pt-BR',{maximumFractionDigits:1}) +'x o maior já entregue ('+pc(o.maxHist*100)+'). Não sustenta um compromisso.';}
+  document.getElementById('selo').innerHTML='<div class="selo '+cls+'">'+txt+'</div>';
+  let h='<thead><tr><th>Mês</th><th>Shopee proj.</th><th>MELI baseline</th><th>MELI necessário</th><th>Incremental</th><th>Ratio inercial</th></tr></thead><tbody>';
+  MES.forEach(m=>{const x=o.meses[m];
+    h+=`<tr><td>${m}</td><td>${f0(x.shp)}</td><td>${f0(x.base)}</td><td>${f0(x.nec)}</td><td class="inc">${f0(x.nec-x.base)}</td><td>${pc(x.shp/x.base*100)}</td></tr>`;});
+  h+=`</tbody><tfoot><tr><td>TOTAL</td><td>${f0(o.shp)}</td><td>${f0(o.base)}</td><td>${f0(o.nec)}</td><td class="inc">${f0(o.inc)}</td><td>${pc(o.shp/o.base*100)}</td></tr></tfoot>`;
+  document.getElementById('tm').innerHTML=h;
+  const ds=sel==='TOTAL'?D1:[sel];
+  let g='<thead><tr><th>D1 · faixa</th><th>mix MELI (LTM)</th><th>ratio da faixa hoje</th><th>incremental alocado</th></tr></thead><tbody>';
+  ds.forEach(d=>{ const alvo=Math.max(0.01,REF[d][ref]+adj/100);
+    let s=0,b=0; MES.forEach(m=>{s+=FC[d][phi][m].s;b+=FC[d][phi][m].m;});
+    const incD=s/alvo-b;
+    MIX[d].forEach(x=>{ g+=`<tr><td>${sel==='TOTAL'?NOME[d].split(' ')[0]+' · ':''}${x.f}</td><td>${pc(x.mm*100)}</td><td>${pc(REF[d].ltm*x.ms/x.mm*100)}</td><td class="inc">${f0(incD*x.mm)}</td></tr>`;});});
+  g+='</tbody>';
+  document.getElementById('tf').innerHTML=g;
+}
+function chips(id,items,cur,set){
+  const c=document.getElementById(id);c.innerHTML='';
+  items.forEach(([k,lab])=>{const s=document.createElement('span');s.className='chip'+(k===cur?' on':'');s.textContent=lab;
+    s.onclick=()=>{set(k);draw();};c.appendChild(s);});
+}
+function draw(){
+  chips('cE',[...D1.map(d=>[d,NOME[d]]),['TOTAL','Total 3 D1s']],sel,v=>sel=v);
+  chips('cP',[[0.8,'0,8 desacelera'],[0.9,'0,9 base'],[1,'1,0 mantém ritmo']],phi,v=>phi=v);
+  chips('cR',[['l3m','Nível atual'],['h225',"H2'25 (zero YoY)"],['q226',"Q2'26 ⚠"],['ltm','LTM']],ref,v=>ref=v);
+  render();
+}
+document.getElementById('sl').addEventListener('input',e=>{adj=parseFloat(e.target.value);render();});
+draw();
+</script>
+</body>
+</html>

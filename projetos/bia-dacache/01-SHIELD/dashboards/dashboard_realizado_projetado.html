@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BC Shopee HE — Realizado × Projetado</title>
+<style>
+  :root{ --shp:#EE4D2D; --meli:#FFE600; --ink:#2d2d2d; --bg:#f6f6f4; --card:#fff; --border:#e3e3df; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Proxima Nova',system-ui,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+  header{background:var(--meli);padding:13px 20px;border-bottom:3px solid #111;display:flex;align-items:center;gap:12px}
+  header h1{font-size:17px;margin:0;font-weight:800}
+  header .sub{font-size:11px;color:#5a5a2e;margin-left:auto}
+  .wrap{padding:16px 20px;max-width:1400px;margin:0 auto}
+  .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 14px;margin-bottom:14px}
+  .bar label{font-size:11px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.4px;margin-right:4px}
+  .chip{font-size:12px;padding:4px 12px;border:1px solid var(--border);border-radius:999px;cursor:pointer;background:#fafafa;user-select:none}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .kpis{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .kpi{flex:1;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:11px 13px}
+  .kpi .lab{font-size:10px;text-transform:uppercase;color:#999;font-weight:700;letter-spacing:.4px}
+  .kpi .val{font-size:21px;font-weight:800;margin-top:2px}
+  .kpi .sub{font-size:11px;color:#777;margin-top:1px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+  .box{position:relative;height:430px}
+  .leg{font-size:11px;color:#777;margin-top:9px;line-height:1.5}
+  .neg{color:#c0392b;font-weight:700} .pos{color:#178a3f;font-weight:700}
+  table.t{width:100%;border-collapse:collapse;font-size:12px}
+  table.t th,table.t td{border:1px solid var(--border);padding:5px 8px;text-align:right;white-space:nowrap}
+  table.t th:first-child,table.t td:first-child{text-align:left;font-weight:700}
+  table.t thead th{background:#fafafa}
+</style>
+</head>
+<body>
+<header>
+  <h1>Combate Shopee · HE — Realizado × Projetado (faixas-foco)</h1>
+  <span class="sub">GMV R$ Mi · combo v1+v2 · φ=0,9 · registrado 20/08/2026</span>
+</header>
+<div class="wrap">
+  <div class="bar">
+    <label>Escopo</label><span id="chips"></span>
+  </div>
+  <div class="kpis" id="kpis"></div>
+  <div class="card">
+    <div class="box"><canvas id="cv"></canvas></div>
+    <div class="leg">Barras <b>cheias</b> = realizado (até jun/26) · barras <b>hachuradas</b> = projeção (jul-dez/26) · linha <b>cheia</b> = ratio realizado · linha <b>tracejada</b> = ratio projetado · linha vertical = fronteira do último dado real.</div>
+  </div>
+  <div class="card">
+    <div style="font-size:13px;font-weight:700;margin-bottom:7px">Por que o ratio sobe na projeção</div>
+    <table class="t" id="tg"></table>
+    <div class="leg">A Shopee desacelera <i>a taxa de crescimento</i>, mas segue crescendo <b>mais rápido que o MELI</b>. Enquanto o diferencial mensal for positivo, o ratio sobe — a desaceleração só o faz subir mais devagar.</div>
+  </div>
+</div>
+<script>
+const RAW = [["LARGE","2025-01",30.33,280.42,null,null],["LARGE","2025-02",26.41,265.66,null,null],["LARGE","2025-03",31.87,310.19,null,null],["LARGE","2025-04",33.64,309.31,null,null],["LARGE","2025-05",31.46,371.62,null,null],["LARGE","2025-06",47.95,385.15,null,null],["LARGE","2025-07",61.07,408.14,null,null],["LARGE","2025-08",73.23,407.45,null,null],["LARGE","2025-09",91.55,395.63,null,null],["LARGE","2025-10",99.25,424.57,null,null],["LARGE","2025-11",129.09,778.25,null,null],["LARGE","2025-12",113.92,402.65,null,null],["LARGE","2026-01",113.7,447.73,null,null],["LARGE","2026-02",113.34,415.82,null,null],["LARGE","2026-03",123.13,549.81,null,null],["LARGE","2026-04",131.44,513.27,null,null],["LARGE","2026-05",186.4,596.16,null,null],["LARGE","2026-06",178.87,570.83,null,null],["LARGE","2026-07",null,null,246.7,633.25],["LARGE","2026-08",null,null,262,616.96],["LARGE","2026-09",null,null,303.7,582],["LARGE","2026-10",null,null,307.59,608.81],["LARGE","2026-11",null,null,362.17,1069.28],["LARGE","2026-12",null,null,310.09,555.49],["SMALL","2025-01",38.42,226.58,null,null],["SMALL","2025-02",51.16,202.89,null,null],["SMALL","2025-03",55.51,231.09,null,null],["SMALL","2025-04",51.94,232.7,null,null],["SMALL","2025-05",52.45,272.11,null,null],["SMALL","2025-06",56.53,260.05,null,null],["SMALL","2025-07",56.63,280.44,null,null],["SMALL","2025-08",56.69,272.58,null,null],["SMALL","2025-09",59.28,267.75,null,null],["SMALL","2025-10",52.72,280.04,null,null],["SMALL","2025-11",65.01,404.32,null,null],["SMALL","2025-12",59.11,284.06,null,null],["SMALL","2026-01",68.68,279.94,null,null],["SMALL","2026-02",69.29,266.27,null,null],["SMALL","2026-03",98.66,333.61,null,null],["SMALL","2026-04",95.9,315.07,null,null],["SMALL","2026-05",155.24,367.05,null,null],["SMALL","2026-06",114.5,347.09,null,null],["SMALL","2026-07",null,null,122.15,376.03],["SMALL","2026-08",null,null,123.98,358.72],["SMALL","2026-09",null,null,126.42,342.38],["SMALL","2026-10",null,null,117.38,350.74],["SMALL","2026-11",null,null,148.88,487.01],["SMALL","2026-12",null,null,145.9,351.97],["H_C","2025-01",11.83,227.2,null,null],["H_C","2025-02",20.4,249.68,null,null],["H_C","2025-03",27.32,185.28,null,null],["H_C","2025-04",16.97,125.41,null,null],["H_C","2025-05",15.07,131.36,null,null],["H_C","2025-06",17.35,131.53,null,null],["H_C","2025-07",21.75,165.62,null,null],["H_C","2025-08",22.83,164.07,null,null],["H_C","2025-09",46.5,209.81,null,null],["H_C","2025-10",99.41,231.83,null,null],["H_C","2025-11",87.25,396.53,null,null],["H_C","2025-12",104.39,372.37,null,null],["H_C","2026-01",100.84,293.29,null,null],["H_C","2026-02",101.08,222.22,null,null],["H_C","2026-03",140.68,238.1,null,null],["H_C","2026-04",75.94,187.85,null,null],["H_C","2026-05",106.52,177.19,null,null],["H_C","2026-06",78.48,181.36,null,null],["H_C","2026-07",null,null,104.93,215.72],["H_C","2026-08",null,null,114.27,238.63],["H_C","2026-09",null,null,213.83,377.12],["H_C","2026-10",null,null,177.06,371.4],["H_C","2026-11",null,null,232.8,656.79],["H_C","2026-12",null,null,237.62,499.92]];
+const ESC = ['LARGE','SMALL','H_C','TOTAL'];
+const NOME = {LARGE:'Large Appliances', SMALL:'Small Appliances', H_C:'Heating & Cooling', TOTAL:'Total 3 D1s'};
+// g mensal dessazonalizado (Shopee / MELI) estimado em L3M
+const GS = {LARGE:[9.54,4.41], SMALL:[7.04,3.11], H_C:[9.98,4.16], TOTAL:[null,null]};
+const D = {};
+RAW.forEach(r=>{ const [e,m,rs,rm,ps,pm]=r; if(!D[e])D[e]={}; D[e][m]={rs,rm,ps,pm}; });
+const MESES = [...new Set(RAW.map(r=>r[1]))].sort();
+D.TOTAL = {};
+MESES.forEach(m=>{ let o={rs:0,rm:0,ps:0,pm:0}, hasR=false, hasP=false;
+  ['LARGE','SMALL','H_C'].forEach(e=>{ const x=D[e][m]; if(!x)return;
+    if(x.rs!=null){o.rs+=x.rs;o.rm+=x.rm;hasR=true;} if(x.ps!=null){o.ps+=x.ps;o.pm+=x.pm;hasP=true;} });
+  D.TOTAL[m]={rs:hasR?o.rs:null, rm:hasR?o.rm:null, ps:hasP?o.ps:null, pm:hasP?o.pm:null}; });
+
+let sel='TOTAL', chart=null;
+const fmt=v=>v==null?'–':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
+const pct=v=>v==null?'–':v.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+
+function hatch(color){
+  const c=document.createElement('canvas'); c.width=7;c.height=7; const x=c.getContext('2d');
+  x.fillStyle='#fff'; x.fillRect(0,0,7,7);
+  x.strokeStyle=color; x.lineWidth=2.4; x.beginPath(); x.moveTo(0,7); x.lineTo(7,0); x.stroke();
+  return x.createPattern(c,'repeat');
+}
+const divisor = {
+  id:'divisor',
+  afterDraw(ch){
+    const i = MESES.indexOf('2026-06'); if(i<0) return;
+    const xs=ch.scales.x, a=ch.chartArea, ctx=ch.ctx;
+    const px = xs.getPixelForValue(i) + (xs.getPixelForValue(1)-xs.getPixelForValue(0))/2;
+    ctx.save(); ctx.strokeStyle='#555'; ctx.setLineDash([5,4]); ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.moveTo(px,a.top); ctx.lineTo(px,a.bottom); ctx.stroke();
+    ctx.setLineDash([]); ctx.fillStyle='#555'; ctx.font='bold 10px sans-serif'; ctx.textAlign='left';
+    ctx.fillText('projeção →', px+5, a.top+12); ctx.textAlign='right'; ctx.fillText('← real', px-5, a.top+12);
+    ctx.restore();
+  }
+};
+
+function build(){
+  const d=D[sel];
+  const shp=MESES.map(m=> d[m] ? (d[m].rs!=null?d[m].rs:d[m].ps) : null);
+  const mel=MESES.map(m=> d[m] ? (d[m].rm!=null?d[m].rm:d[m].pm) : null);
+  const isF=MESES.map(m=> d[m] && d[m].rs==null);
+  const ratio=MESES.map((m,i)=> shp[i]!=null&&mel[i]?shp[i]/mel[i]*100:null);
+  const rReal=ratio.map((v,i)=> isF[i]?null:v);
+  const rFc=ratio.map((v,i)=> { const prev=i>0&&isF[i]&&!isF[i-1]; return (isF[i]||prev)?v:null; });
+
+  const pShp=hatch('#EE4D2D'), pMel=hatch('#d9c400');
+  const cfg={ data:{labels:MESES, datasets:[
+    {type:'bar',label:'GMV Shopee',data:shp,yAxisID:'y',order:3,
+      backgroundColor:MESES.map((m,i)=>isF[i]?pShp:'#EE4D2D'),
+      borderColor:'#EE4D2D',borderWidth:MESES.map((m,i)=>isF[i]?1.5:0)},
+    {type:'bar',label:'GMV MELI',data:mel,yAxisID:'y',order:3,
+      backgroundColor:MESES.map((m,i)=>isF[i]?pMel:'#FFE600'),
+      borderColor:'#c9b800',borderWidth:1.2},
+    {type:'line',label:'Ratio SHP/MELI (real)',data:rReal,yAxisID:'y1',borderColor:'#111',backgroundColor:'#111',borderWidth:2.4,tension:.2,order:1,spanGaps:false,pointRadius:2.5},
+    {type:'line',label:'Ratio (projetado)',data:rFc,yAxisID:'y1',borderColor:'#111',backgroundColor:'#111',borderWidth:2.4,borderDash:[6,4],tension:.2,order:1,spanGaps:false,pointRadius:2.5,pointStyle:'rectRot'}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'top',labels:{boxWidth:14,font:{size:11}}},
+      tooltip:{callbacks:{title:(t)=>t[0].label+(isF[t[0].dataIndex]?'  (projetado)':'  (real)'),
+        label:(c)=>{ const i=c.dataIndex;
+          if(c.dataset.label.startsWith('GMV Shopee')) return ' Shopee: R$ '+fmt(shp[i])+' Mi';
+          if(c.dataset.label.startsWith('GMV MELI')) return ' MELI: R$ '+fmt(mel[i])+' Mi';
+          return ' Ratio: '+pct(ratio[i]); }}}},
+    scales:{y:{title:{display:true,text:'GMV (R$ Mi)'},beginAtZero:true},
+      y1:{position:'right',title:{display:true,text:'Ratio SHP/MELI (%)'},grid:{drawOnChartArea:false},ticks:{callback:v=>v+'%'},beginAtZero:true}}},
+  plugins:[divisor]};
+  if(chart)chart.destroy();
+  chart=new Chart(document.getElementById('cv'),cfg);
+
+  // KPIs
+  const iJun=MESES.indexOf('2026-06'), iDez=MESES.indexOf('2026-12');
+  const rJun=ratio[iJun], rDez=ratio[iDez], dpp=rDez-rJun;
+  const g=GS[sel];
+  document.getElementById('kpis').innerHTML=`
+    <div class="kpi"><div class="lab">Ratio jun/26 (real)</div><div class="val">${pct(rJun)}</div><div class="sub">último dado real</div></div>
+    <div class="kpi"><div class="lab">Ratio dez/26 (projetado)</div><div class="val">${pct(rDez)}</div><div class="sub"><span class="${dpp>0?'neg':'pos'}">${dpp>0?'+':''}${dpp.toLocaleString('pt-BR',{maximumFractionDigits:1})} pp</span> vs jun</div></div>
+    <div class="kpi"><div class="lab">Shopee jul-dez (proj.)</div><div class="val">${fmt(MESES.filter((m,i)=>isF[i]).reduce((a,m,i2)=>a+(D[sel][m].ps||0),0))} Mi</div><div class="sub">6 meses</div></div>
+    <div class="kpi"><div class="lab">MELI jul-dez (baseline)</div><div class="val">${fmt(MESES.filter((m,i)=>isF[i]).reduce((a,m)=>a+(D[sel][m].pm||0),0))} Mi</div><div class="sub">projeção inercial</div></div>`;
+
+  // tabela do diferencial
+  let h='<thead><tr><th>Escopo</th><th>Shopee: g mensal</th><th>MELI: g mensal</th><th>Diferencial</th><th>Efeito em 6 meses no ratio</th></tr></thead><tbody>';
+  ['LARGE','SMALL','H_C'].forEach(e=>{ const gg=GS[e]; const dif=gg[0]-gg[1];
+    const mult=Math.pow(1+dif/100,6);
+    h+=`<tr><td>${NOME[e]}</td><td>+${gg[0].toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}%</td><td>+${gg[1].toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}%</td><td><b>+${dif.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})} pp</b></td><td>ratio × <b>${mult.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}</b></td></tr>`; });
+  h+='</tbody>';
+  document.getElementById('tg').innerHTML=h;
+}
+function chips(){
+  const c=document.getElementById('chips'); c.innerHTML='';
+  ESC.forEach(e=>{ const s=document.createElement('span'); s.className='chip'+(e===sel?' on':''); s.textContent=NOME[e];
+    s.onclick=()=>{sel=e;chips();build();}; c.appendChild(s); });
+}
+function init(){ chips(); build(); }
+(function(){
+  const g=document.createElement('script'); g.src='/d/_libs/chart.min.js';
+  g.onload=init;
+  g.onerror=function(){ const c=document.createElement('script');
+    c.src='https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js'; c.onload=init; document.head.appendChild(c); };
+  document.head.appendChild(g);
+})();
+</script>
+</body>
+</html>
